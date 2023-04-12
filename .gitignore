@@ -1,0 +1,13 @@
+# Legacy VS projects
+*.sln.in
+*.vcxproj
+*.vcxproj.in
+*.vcxproj.user
+*.vcxproj.filters
+*.vcxproj.filters.in
+
+# This project
+/.gitlab
+/.github
+/.reuse
+/win32utils
