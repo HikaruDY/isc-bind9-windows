@@ -30,7 +30,7 @@ isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
 
 	trampoline_arg = isc__trampoline_get(start, arg);
 
-	thread = (isc_thread_t)_beginthreadex(NULL, 0, isc__trampoline_run,
+	thread = (isc_thread_t)_beginthreadex(NULL, 0, (_beginthreadex_proc_type) isc__trampoline_run,
 					      trampoline_arg, 0, &id);
 	if (thread == NULL) {
 		char strbuf[ISC_STRERRORSIZE];

@@ -352,7 +352,7 @@ isc__netmgr_create(isc_mem_t *mctx, uint32_t workers, isc_nm_t **netmgrp) {
 		 * and nm_thread would still not be up.
 		 */
 		mgr->workers_running++;
-		isc_thread_create(nm_thread, &mgr->workers[i], &worker->thread);
+		isc_thread_create((isc_threadfunc_t) nm_thread, &mgr->workers[i], &worker->thread);
 
 		snprintf(name, sizeof(name), "isc-net-%04zu", i);
 		isc_thread_setname(worker->thread, name);
@@ -3154,7 +3154,7 @@ isc__nm_work_cb(uv_work_t *req) {
 
 	if (isc_tid_v == SIZE_MAX) {
 		isc__trampoline_t *trampoline_arg =
-			isc__trampoline_get(isc__nm_work_run, work);
+			isc__trampoline_get((isc_threadfunc_t) isc__nm_work_run, work);
 		(void)isc__trampoline_run(trampoline_arg);
 	} else {
 		(void)isc__nm_work_run((isc_threadarg_t)work);
