@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)\Projects_Modules\Modules.props" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>LIBISC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>$(root)/lib/isc/win32/libisc.def</ModuleDefinitionFile>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\isc\aes.c" />
+    <ClCompile Include="..\..\lib\isc\app.c" />
+    <ClCompile Include="..\..\lib\isc\assertions.c" />
+    <ClCompile Include="..\..\lib\isc\astack.c" />
+    <ClCompile Include="..\..\lib\isc\backtrace-emptytbl.c" />
+    <ClCompile Include="..\..\lib\isc\backtrace.c" />
+    <ClCompile Include="..\..\lib\isc\base32.c" />
+    <ClCompile Include="..\..\lib\isc\base64.c" />
+    <ClCompile Include="..\..\lib\isc\bind9.c" />
+    <ClCompile Include="..\..\lib\isc\buffer.c" />
+    <ClCompile Include="..\..\lib\isc\bufferlist.c" />
+    <ClCompile Include="..\..\lib\isc\commandline.c" />
+    <ClCompile Include="..\..\lib\isc\counter.c" />
+    <ClCompile Include="..\..\lib\isc\crc64.c" />
+    <ClCompile Include="..\..\lib\isc\entropy.c" />
+    <ClCompile Include="..\..\lib\isc\error.c" />
+    <ClCompile Include="..\..\lib\isc\event.c" />
+    <ClCompile Include="..\..\lib\isc\hash.c" />
+    <ClCompile Include="..\..\lib\isc\heap.c" />
+    <ClCompile Include="..\..\lib\isc\hex.c" />
+    <ClCompile Include="..\..\lib\isc\hmac.c" />
+    <ClCompile Include="..\..\lib\isc\ht.c" />
+    <ClCompile Include="..\..\lib\isc\httpd.c" />
+    <ClCompile Include="..\..\lib\isc\iterated_hash.c" />
+    <ClCompile Include="..\..\lib\isc\lex.c" />
+    <ClCompile Include="..\..\lib\isc\lfsr.c" />
+    <ClCompile Include="..\..\lib\isc\lib.c" />
+    <ClCompile Include="..\..\lib\isc\log.c" />
+    <ClCompile Include="..\..\lib\isc\managers.c" />
+    <ClCompile Include="..\..\lib\isc\md.c" />
+    <ClCompile Include="..\..\lib\isc\mem.c" />
+    <ClCompile Include="..\..\lib\isc\mutexblock.c" />
+    <ClCompile Include="..\..\lib\isc\netaddr.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\netmgr.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\tcp.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\tcpdns.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\udp.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\uv-compat.c" />
+    <ClCompile Include="..\..\lib\isc\netmgr\uverr2result.c" />
+    <ClCompile Include="..\..\lib\isc\netscope.c" />
+    <ClCompile Include="..\..\lib\isc\nonce.c" />
+    <ClCompile Include="..\..\lib\isc\openssl_shim.c" />
+    <ClCompile Include="..\..\lib\isc\parseint.c" />
+    <ClCompile Include="..\..\lib\isc\pk11.c" />
+    <ClCompile Include="..\..\lib\isc\pk11_result.c" />
+    <ClCompile Include="..\..\lib\isc\pool.c" />
+    <ClCompile Include="..\..\lib\isc\portset.c" />
+    <ClCompile Include="..\..\lib\isc\quota.c" />
+    <ClCompile Include="..\..\lib\isc\radix.c" />
+    <ClCompile Include="..\..\lib\isc\random.c" />
+    <ClCompile Include="..\..\lib\isc\ratelimiter.c" />
+    <ClCompile Include="..\..\lib\isc\regex.c" />
+    <ClCompile Include="..\..\lib\isc\region.c" />
+    <ClCompile Include="..\..\lib\isc\result.c" />
+    <ClCompile Include="..\..\lib\isc\rwlock.c" />
+    <ClCompile Include="..\..\lib\isc\safe.c" />
+    <ClCompile Include="..\..\lib\isc\serial.c" />
+    <ClCompile Include="..\..\lib\isc\siphash.c" />
+    <ClCompile Include="..\..\lib\isc\sockaddr.c" />
+    <ClCompile Include="..\..\lib\isc\stats.c" />
+    <ClCompile Include="..\..\lib\isc\string.c" />
+    <ClCompile Include="..\..\lib\isc\symtab.c" />
+    <ClCompile Include="..\..\lib\isc\task.c" />
+    <ClCompile Include="..\..\lib\isc\taskpool.c" />
+    <ClCompile Include="..\..\lib\isc\timer.c" />
+    <ClCompile Include="..\..\lib\isc\tls.c" />
+    <ClCompile Include="..\..\lib\isc\tm.c" />
+    <ClCompile Include="..\..\lib\isc\trampoline.c" />
+    <ClCompile Include="..\..\lib\isc\url.c" />
+    <ClCompile Include="..\..\lib\isc\utf8.c" />
+    <ClCompile Include="..\..\lib\isc\win32\condition.c" />
+    <ClCompile Include="..\..\lib\isc\win32\dir.c" />
+    <ClCompile Include="..\..\lib\isc\win32\DLLMain.c" />
+    <ClCompile Include="..\..\lib\isc\win32\errno.c" />
+    <ClCompile Include="..\..\lib\isc\win32\errno2result.c" />
+    <ClCompile Include="..\..\lib\isc\win32\file.c" />
+    <ClCompile Include="..\..\lib\isc\win32\fsaccess.c" />
+    <ClCompile Include="..\..\lib\isc\win32\interfaceiter.c" />
+    <ClCompile Include="..\..\lib\isc\win32\ipv6.c" />
+    <ClCompile Include="..\..\lib\isc\win32\meminfo.c" />
+    <ClCompile Include="..\..\lib\isc\win32\net.c" />
+    <ClCompile Include="..\..\lib\isc\win32\ntgroups.c" />
+    <ClCompile Include="..\..\lib\isc\win32\ntpaths.c" />
+    <ClCompile Include="..\..\lib\isc\win32\once.c" />
+    <ClCompile Include="..\..\lib\isc\win32\os.c" />
+    <ClCompile Include="..\..\lib\isc\win32\pk11_api.c" />
+    <ClCompile Include="..\..\lib\isc\win32\resource.c" />
+    <ClCompile Include="..\..\lib\isc\win32\socket.c" />
+    <ClCompile Include="..\..\lib\isc\win32\stdio.c" />
+    <ClCompile Include="..\..\lib\isc\win32\stdtime.c" />
+    <ClCompile Include="..\..\lib\isc\win32\syslog.c" />
+    <ClCompile Include="..\..\lib\isc\win32\thread.c" />
+    <ClCompile Include="..\..\lib\isc\win32\time.c" />
+    <ClCompile Include="..\..\lib\isc\win32\version.c" />
+    <ClCompile Include="..\..\lib\isc\win32\win32os.c" />
+    <ClCompile Include="..\..\lib\isc\xoshiro128starstar.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\isc\entropy_private.h" />
+    <ClInclude Include="..\..\lib\isc\lib_p.h" />
+    <ClInclude Include="..\..\lib\isc\mem_p.h" />
+    <ClInclude Include="..\..\lib\isc\netmgr\netmgr-int.h" />
+    <ClInclude Include="..\..\lib\isc\netmgr\uv-compat.h" />
+    <ClInclude Include="..\..\lib\isc\netmgr_p.h" />
+    <ClInclude Include="..\..\lib\isc\openssl_shim.h" />
+    <ClInclude Include="..\..\lib\isc\task_p.h" />
+    <ClInclude Include="..\..\lib\isc\timer_p.h" />
+    <ClInclude Include="..\..\lib\isc\tls_p.h" />
+    <ClInclude Include="..\..\lib\isc\trampoline_p.h" />
+    <ClInclude Include="..\..\lib\isc\win32\errno2result.h" />
+    <ClInclude Include="..\..\lib\isc\win32\libgen.h" />
+    <ClInclude Include="..\..\lib\isc\win32\netdb.h" />
+    <ClInclude Include="..\..\lib\isc\win32\syslog.h" />
+    <ClInclude Include="..\..\lib\isc\win32\unistd.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{09E461E7-A4AD-4D27-A627-D8B13C5C114D}</ProjectGuid>
+  </PropertyGroup>
+</Project>

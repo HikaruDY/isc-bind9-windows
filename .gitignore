@@ -54,3 +54,8 @@ Thumbs.db
 /.gitlab
 /.reuse
 /win32utils
+
+lib/dns/code.h
+lib/dns/include/dns/enumclass.h
+lib/dns/include/dns/enumtype.h
+lib/dns/include/dns/rdatastruct.h

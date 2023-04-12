@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="$(SolutionDir)\Common.props" Condition="exists('$(SolutionDir)\Common.props')" />
+
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+	<PropertyGroup>
+		<ConfigurationType>Application</ConfigurationType>
+	</PropertyGroup>
+
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<ForcedIncludeFiles>$(SolutionDir)/include/config.h;$(root)/lib/isc/win32/include/isc/ntpaths.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+		</ClCompile>
+		<Link>
+			<AdditionalDependencies>
+				$(OutDir)/libisc.lib;
+				$(OutDir)/libisccc.lib;
+				$(OutDir)/libisccfg.lib;
+				$(OutDir)/libdns.lib;
+				$(OutDir)/libns.lib;
+				$(OutDir)/libirs.lib;
+				$(OutDir)/libbind9.lib;
+				%(AdditionalDependencies)
+			</AdditionalDependencies>
+		</Link>
+	</ItemDefinitionGroup>
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+	<Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
