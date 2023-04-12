@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef BIND9_CHECK_H
-#define BIND9_CHECK_H 1
+#pragma once
 
 /*! \file bind9/check.h */
 
@@ -62,5 +61,3 @@ bind9_check_key(const cfg_obj_t *config, isc_log_t *logctx);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* BIND9_CHECK_H */

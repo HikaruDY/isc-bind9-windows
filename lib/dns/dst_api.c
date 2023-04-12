@@ -41,7 +41,6 @@
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
@@ -50,9 +49,9 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
 #define DST_KEY_INTERNAL
+
+#include <isc/result.h>
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -61,8 +60,6 @@
 #include <dns/rdataclass.h>
 #include <dns/ttl.h>
 #include <dns/types.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 
@@ -197,8 +194,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 
 	UNUSED(engine);
 
-	dst_result_register();
-
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
 	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
@@ -208,7 +203,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 	RETERR(dst__openssl_init(engine));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
-#if USE_OPENSSL
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
 				    DST_ALG_RSASHA1));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
@@ -225,22 +219,10 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifdef HAVE_OPENSSL_ED448
 	RETERR(dst__openssleddsa_init(&dst_t_func[DST_ALG_ED448]));
 #endif /* ifdef HAVE_OPENSSL_ED448 */
-#endif /* USE_OPENSSL */
 
-#if USE_PKCS11
-	RETERR(dst__pkcs11_init(mctx, engine));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
-	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
-	RETERR(dst__pkcs11ecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
-	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED25519]));
-	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED448]));
-#endif /* USE_PKCS11 */
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 	RETERR(dst__gssapi_init(&dst_t_func[DST_ALG_GSSAPI]));
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 
 	dst_initialized = true;
 	return (ISC_R_SUCCESS);
@@ -264,9 +246,6 @@ dst_lib_destroy(void) {
 		}
 	}
 	dst__openssl_destroy();
-#if USE_PKCS11
-	(void)dst__pkcs11_destroy();
-#endif /* USE_PKCS11 */
 }
 
 bool
@@ -506,15 +485,12 @@ dst_key_setmodified(dst_key_t *key, bool value) {
 bool
 dst_key_ismodified(const dst_key_t *key) {
 	bool modified;
-	dst_key_t *k;
 
 	REQUIRE(VALID_KEY(key));
 
-	DE_CONST(key, k);
-
-	isc_mutex_lock(&k->mdlock);
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	modified = key->modified;
-	isc_mutex_unlock(&k->mdlock);
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 
 	return (modified);
 }
@@ -614,15 +590,9 @@ dst_key_fromnamedfile(const char *filename, const char *dirname, int type,
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	/* If an absolute path is specified, don't use the key directory */
-#ifndef WIN32
 	if (filename[0] == '/') {
 		dirname = NULL;
 	}
-#else  /* WIN32 */
-	if (filename[0] == '/' || filename[0] == '\\') {
-		dirname = NULL;
-	}
-#endif /* ifndef WIN32 */
 
 	newfilenamelen = strlen(filename) + 5;
 	if (dirname != NULL) {
@@ -1053,21 +1023,17 @@ dst_key_generate(const dns_name_t *name, unsigned int alg, unsigned int bits,
 
 isc_result_t
 dst_key_getbool(const dst_key_t *key, int type, bool *valuep) {
-	dst_key_t *k;
-
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(valuep != NULL);
 	REQUIRE(type <= DST_MAX_BOOLEAN);
 
-	DE_CONST(key, k);
-
-	isc_mutex_lock(&k->mdlock);
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->boolset[type]) {
-		isc_mutex_unlock(&k->mdlock);
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*valuep = key->bools[type];
-	isc_mutex_unlock(&k->mdlock);
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 
 	return (ISC_R_SUCCESS);
 }
@@ -1098,21 +1064,17 @@ dst_key_unsetbool(dst_key_t *key, int type) {
 
 isc_result_t
 dst_key_getnum(const dst_key_t *key, int type, uint32_t *valuep) {
-	dst_key_t *k;
-
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(valuep != NULL);
 	REQUIRE(type <= DST_MAX_NUMERIC);
 
-	DE_CONST(key, k);
-
-	isc_mutex_lock(&k->mdlock);
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->numset[type]) {
-		isc_mutex_unlock(&k->mdlock);
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*valuep = key->nums[type];
-	isc_mutex_unlock(&k->mdlock);
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 
 	return (ISC_R_SUCCESS);
 }
@@ -1143,21 +1105,17 @@ dst_key_unsetnum(dst_key_t *key, int type) {
 
 isc_result_t
 dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep) {
-	dst_key_t *k;
-
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(timep != NULL);
 	REQUIRE(type <= DST_MAX_TIMES);
 
-	DE_CONST(key, k);
-
-	isc_mutex_lock(&k->mdlock);
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->timeset[type]) {
-		isc_mutex_unlock(&k->mdlock);
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*timep = key->times[type];
-	isc_mutex_unlock(&k->mdlock);
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 	return (ISC_R_SUCCESS);
 }
 
@@ -1187,21 +1145,17 @@ dst_key_unsettime(dst_key_t *key, int type) {
 
 isc_result_t
 dst_key_getstate(const dst_key_t *key, int type, dst_key_state_t *statep) {
-	dst_key_t *k;
-
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(statep != NULL);
 	REQUIRE(type <= DST_MAX_KEYSTATES);
 
-	DE_CONST(key, k);
-
-	isc_mutex_lock(&k->mdlock);
+	isc_mutex_lock(&(((dst_key_t *)key)->mdlock));
 	if (!key->keystateset[type]) {
-		isc_mutex_unlock(&k->mdlock);
+		isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 		return (ISC_R_NOTFOUND);
 	}
 	*statep = key->keystates[type];
-	isc_mutex_unlock(&k->mdlock);
+	isc_mutex_unlock(&(((dst_key_t *)key)->mdlock));
 
 	return (ISC_R_SUCCESS);
 }
@@ -2794,4 +2748,24 @@ dst_key_copy_metadata(dst_key_t *to, dst_key_t *from) {
 	}
 
 	dst_key_setmodified(to, dst_key_ismodified(from));
+}
+
+const char *
+dst_hmac_algorithm_totext(dst_algorithm_t alg) {
+	switch (alg) {
+	case DST_ALG_HMACMD5:
+		return ("hmac-md5");
+	case DST_ALG_HMACSHA1:
+		return ("hmac-sha1");
+	case DST_ALG_HMACSHA224:
+		return ("hmac-sha224");
+	case DST_ALG_HMACSHA256:
+		return ("hmac-sha256");
+	case DST_ALG_HMACSHA384:
+		return ("hmac-sha384");
+	case DST_ALG_HMACSHA512:
+		return ("hmac-sha512");
+	default:
+		return ("unknown");
+	}
 }

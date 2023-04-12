@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DYNDB_H
-#define DNS_DYNDB_H
+#pragma once
 
 #include <stdbool.h>
 
@@ -42,7 +41,7 @@ struct dns_dyndbctx {
 	dns_zonemgr_t  *zmgr;
 	isc_task_t     *task;
 	isc_timermgr_t *timermgr;
-	unsigned int   *memdebug;
+	const bool     *refvar; /* unused, but retained for API compatibility */
 };
 
 #define DNS_DYNDBCTX_MAGIC    ISC_MAGIC('D', 'd', 'b', 'c')
@@ -158,5 +157,3 @@ dns_dyndb_destroyctx(dns_dyndbctx_t **dctxp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DYNDB_H */

@@ -18,13 +18,15 @@
 #include <stdlib.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
+#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/print.h>
-#include <isc/socket.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -38,7 +40,6 @@
 #include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/zone.h>
 
@@ -59,13 +60,13 @@ static enum { progmode_check, progmode_compile } progmode;
 		if (result != ISC_R_SUCCESS) {                                \
 			if (!quiet)                                           \
 				fprintf(stderr, "%s() returned %s\n",         \
-					function, dns_result_totext(result)); \
+					function, isc_result_totext(result)); \
 			return (result);                                      \
 		}                                                             \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+noreturn static void
+usage(void);
 
 static void
 usage(void) {
@@ -78,7 +79,7 @@ usage(void) {
 		"[-i (full|full-sibling|local|local-sibling|none)] "
 		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
 		"[-W (ignore|warn)] "
-		"%s zonename filename\n",
+		"%s zonename [ (filename|-) ]\n",
 		prog_name,
 		progmode == progmode_check ? "[-o filename]" : "-o filename");
 	exit(1);
@@ -96,7 +97,7 @@ int
 main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
-	char *filename = NULL;
+	const char *filename = NULL;
 	isc_log_t *lctx = NULL;
 	isc_result_t result;
 	char classname_in[] = "IN";
@@ -354,7 +355,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'v':
-			printf(VERSION "\n");
+			printf("%s\n", PACKAGE_VERSION);
 			exit(0);
 
 		case 'w':
@@ -453,8 +454,6 @@ main(int argc, char **argv) {
 			inputformat = dns_masterformat_raw;
 			fprintf(stderr, "WARNING: input format raw, version "
 					"ignored\n");
-		} else if (strcasecmp(inputformatstr, "map") == 0) {
-			inputformat = dns_masterformat_map;
 		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 				inputformatstr);
@@ -478,8 +477,6 @@ main(int argc, char **argv) {
 				fprintf(stderr, "unknown raw format version\n");
 				exit(1);
 			}
-		} else if (strcasecmp(outputformatstr, "map") == 0) {
-			outputformat = dns_masterformat_map;
 		} else {
 			fprintf(stderr, "unknown file format: %s\n",
 				outputformatstr);
@@ -514,13 +511,11 @@ main(int argc, char **argv) {
 		logdump = false;
 	}
 
-	if (isc_commandline_index + 2 != argc) {
+	if (argc - isc_commandline_index < 1 ||
+	    argc - isc_commandline_index > 2)
+	{
 		usage();
 	}
-
-#ifdef _WIN32
-	InitSockets();
-#endif /* ifdef _WIN32 */
 
 	isc_mem_create(&mctx);
 	if (!quiet) {
@@ -528,10 +523,17 @@ main(int argc, char **argv) {
 			      ISC_R_SUCCESS);
 	}
 
-	dns_result_register();
-
 	origin = argv[isc_commandline_index++];
-	filename = argv[isc_commandline_index++];
+
+	if (isc_commandline_index == argc) {
+		/* "-" will be interpreted as stdin */
+		filename = "-";
+	} else {
+		filename = argv[isc_commandline_index];
+	}
+
+	isc_commandline_index++;
+
 	result = load_zone(mctx, origin, filename, inputformat, classname,
 			   maxttl, &zone);
 
@@ -562,8 +564,6 @@ main(int argc, char **argv) {
 		isc_log_destroy(&lctx);
 	}
 	isc_mem_destroy(&mctx);
-#ifdef _WIN32
-	DestroySockets();
-#endif /* ifdef _WIN32 */
+
 	return ((result == ISC_R_SUCCESS) ? 0 : 1);
 }

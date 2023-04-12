@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_UPDATE_H
-#define NS_UPDATE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -27,7 +26,8 @@
  *** Imports
  ***/
 
-#include <dns/result.h>
+#include <isc/result.h>
+
 #include <dns/types.h>
 
 /***
@@ -41,5 +41,3 @@
 void
 ns_update_start(ns_client_t *client, isc_nmhandle_t *handle,
 		isc_result_t sigresult);
-
-#endif /* NS_UPDATE_H */

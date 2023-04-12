@@ -13,6 +13,7 @@
 
 #include <isc/log.h>
 #include <isc/print.h>
+#include <isc/result.h>
 
 #include <dns/message.h>
 #include <dns/rdataset.h>

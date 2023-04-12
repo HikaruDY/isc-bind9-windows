@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_FORMATCHECK_H
-#define ISC_FORMATCHECK_H 1
+#pragma once
 
 /*! \file isc/formatcheck.h */
 
@@ -32,5 +31,3 @@
 #else /* ifdef __GNUC__ */
 #define ISC_FORMAT_PRINTF(fmt, args)
 #endif /* ifdef __GNUC__ */
-
-#endif /* ISC_FORMATCHECK_H */

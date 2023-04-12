@@ -11,14 +11,13 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RNDC_UTIL_H
-#define RNDC_UTIL_H 1
+#pragma once
 
 /*! \file */
 
+#include <isc/attributes.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
-#include <isc/platform.h>
 
 #define NS_CONTROL_PORT 953
 
@@ -37,10 +36,7 @@ ISC_LANG_BEGINDECLS
 void
 notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
-ISC_PLATFORM_NORETURN_PRE void
-fatal(const char *format, ...)
-	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+noreturn void
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 ISC_LANG_ENDDECLS
-
-#endif /* RNDC_UTIL_H */

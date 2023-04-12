@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_COMPRESS_H
-#define DNS_COMPRESS_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -298,5 +297,3 @@ dns_decompress_type(dns_decompress_t *dctx);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_COMPRESS_H */

@@ -391,7 +391,7 @@ tostruct_ipseckey(ARGS_TOSTRUCT) {
 	case 3:
 		dns_name_init(&ipseckey->gateway, NULL);
 		dns_name_fromregion(&name, &region);
-		RETERR(name_duporclone(&name, mctx, &ipseckey->gateway));
+		name_duporclone(&name, mctx, &ipseckey->gateway);
 		isc_region_consume(&region, name_length(&name));
 		break;
 	}
@@ -442,6 +442,7 @@ additionaldata_ipseckey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ipseckey);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

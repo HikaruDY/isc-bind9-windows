@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_STATS_H
-#define NS_STATS_H 1
+#pragma once
 
 /*! \file include/ns/stats.h */
 
@@ -137,5 +136,3 @@ ns_stats_update_if_greater(ns_stats_t *stats, isc_statscounter_t counter,
 
 isc_statscounter_t
 ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter);
-
-#endif /* NS_STATS_H */

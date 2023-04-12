@@ -174,6 +174,7 @@ additionaldata_l64(ARGS_ADDLDATA) {
 	REQUIRE(rdata->length == 10);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

@@ -35,9 +35,9 @@
 
 #include <isc/assertions.h>
 #include <isc/print.h>
+#include <isc/result.h>
 
 #include <isccc/alist.h>
-#include <isccc/result.h>
 #include <isccc/sexpr.h>
 #include <isccc/util.h>
 

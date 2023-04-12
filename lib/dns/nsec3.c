@@ -20,6 +20,7 @@
 #include <isc/iterated_hash.h>
 #include <isc/md.h>
 #include <isc/nonce.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -36,7 +37,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/zone.h>
 
 #include <dst/dst.h>
@@ -1974,7 +1974,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	if (dns_name_countlabels(zonename) == 0 ||
 	    dns_name_issubdomain(zone, zonename))
 	{
-		dns_name_copynf(zone, zonename);
+		dns_name_copy(zone, zonename);
 	}
 
 	if (!dns_name_equal(zone, zonename)) {
@@ -2133,7 +2133,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 					 "NSEC3 indicates potential closest "
 					 "encloser: '%s'",
 					 namebuf);
-				dns_name_copynf(qname, closest);
+				dns_name_copy(qname, closest);
 				*setclosest = true;
 			}
 			dns_name_format(qname, namebuf, sizeof(namebuf));
@@ -2167,7 +2167,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			    (dns_name_countlabels(nearest) == 0 ||
 			     dns_name_issubdomain(nearest, qname)))
 			{
-				dns_name_copynf(qname, nearest);
+				dns_name_copy(qname, nearest);
 				*setnearest = true;
 			}
 

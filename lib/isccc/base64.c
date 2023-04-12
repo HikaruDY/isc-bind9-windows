@@ -35,7 +35,6 @@
 #include <isc/result.h>
 
 #include <isccc/base64.h>
-#include <isccc/result.h>
 #include <isccc/util.h>
 
 isc_result_t

@@ -16,8 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef DLZ_LIST_H
-#define DLZ_LIST_H 1
+#pragma once
 
 #define DLZ_LIST(type)             \
 	struct {                   \
@@ -69,5 +68,3 @@
 		(elt)->link.prev = (void *)(-1);                        \
 		(elt)->link.next = (void *)(-1);                        \
 	} while (0)
-
-#endif /* DLZ_LIST_H */

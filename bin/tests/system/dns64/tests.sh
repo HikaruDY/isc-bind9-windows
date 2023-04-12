@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -1398,6 +1397,55 @@ echo_i "checking synthesis of AAAA from RPZ-remapped A ($n)"
 ret=0
 $DIG $DIGOPTS aaaa rpz.example +rec -b 10.53.0.7 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep -i 'rpz.example.*IN.AAAA.2001:96::a0a:a0a' dig.out.ns2.test$n >/dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking 'dig +dns64prefix' ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '^2001:bbbb::/96$' dig.out.ns1.test$n > /dev/null || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+copy_setports ns1/named.conf2.in ns1/named.conf
+rndc_reload ns1 10.53.0.1
+
+echo_i "checking 'dig +dns64prefix' with multiple prefixes ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '^2001:bbbb::/96$' dig.out.ns1.test$n > /dev/null || ret=1
+grep '2001:aaaa::/64' dig.out.ns1.test$n > /dev/null || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 2 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+copy_setports ns1/named.conf3.in ns1/named.conf
+rndc_reload ns1 10.53.0.1
+
+echo_i "checking 'dig +dns64prefix' with no prefixes ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 0 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking synthesis of AAAA from builtin ipv4only.arpa ($n)"
+ret=0
+$DIG $DIGOPTS aaaa ipv4only.arpa -b 10.53.0.7 @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep -i 'ipv4only.arpa.*IN.AAAA.2001:96::c000:aa' dig.out.ns2.test$n >/dev/null || ret=1
+grep -i 'ipv4only.arpa.*IN.AAAA.2001:96::c000:ab' dig.out.ns2.test$n >/dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking reverse of dns64 mapped ipv4only.arpa addresses returns ipv4only.arpa ($n)"
+ret=0
+$DIG $DIGOPTS ptr -x 2001:96::192.0.0.170 -b 10.53.0.7 @10.53.0.2 > dig.out.170.ns2.test$n || ret=1
+$DIG $DIGOPTS ptr -x 2001:96::192.0.0.171 -b 10.53.0.7 @10.53.0.2 > dig.out.171.ns2.test$n || ret=1
+grep "ip6\.arpa\..*PTR.*ipv4only\.arpa\." dig.out.170.ns2.test$n >/dev/null || ret=1
+grep "ip6\.arpa\..*PTR.*ipv4only\.arpa\." dig.out.171.ns2.test$n >/dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

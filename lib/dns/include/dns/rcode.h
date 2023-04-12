@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RCODE_H
-#define DNS_RCODE_H 1
+#pragma once
 
 /*! \file dns/rcode.h */
 
@@ -106,5 +105,3 @@ dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RCODE_H */

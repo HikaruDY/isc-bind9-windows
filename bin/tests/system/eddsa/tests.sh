@@ -11,8 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+set -e
+
+. ../conf.sh
 
 status=0
 n=0
@@ -47,6 +48,8 @@ else
 	echo_i "algorithm Ed25519 not supported, skipping vectors match test"
 fi
 
+n=$((n+1))
+ret=0
 if [ -f ed448-supported.file ]; then
 	# Check the example. domain
 	n=$((n+1))

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_GEOIP_H
-#define DNS_GEOIP_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -110,5 +109,3 @@ dns_geoip_match(const isc_netaddr_t	    *reqaddr,
 ISC_LANG_ENDDECLS
 
 #endif /* HAVE_GEOIP2 */
-
-#endif /* DNS_GEOIP_H */

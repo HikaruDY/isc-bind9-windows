@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATACLASS_H
-#define DNS_RDATACLASS_H 1
+#pragma once
 
 /*! \file dns/rdataclass.h */
 
@@ -90,5 +89,3 @@ dns_rdataclass_format(dns_rdataclass_t rdclass, char *array, unsigned int size);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATACLASS_H */

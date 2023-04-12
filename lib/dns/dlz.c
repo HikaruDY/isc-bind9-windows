@@ -404,7 +404,7 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 /*
  * Create a writeable DLZ zone. This can be called by DLZ drivers
  * during configure() to create a zone that can be updated. The zone
- * type is set to dns_zone_dlz, which is equivalent to a master zone
+ * type is set to dns_zone_dlz, which is equivalent to a primary zone
  *
  * This function uses a callback setup in dns_dlzconfigure() to call
  * into the server zone code to setup the remaining pieces of server
@@ -467,11 +467,7 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	dns_zone_setadded(zone, true);
 
 	if (dlzdb->ssutable == NULL) {
-		result = dns_ssutable_createdlz(dlzdb->mctx, &dlzdb->ssutable,
-						dlzdb);
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
+		dns_ssutable_createdlz(dlzdb->mctx, &dlzdb->ssutable, dlzdb);
 	}
 	dns_zone_setssutable(zone, dlzdb->ssutable);
 

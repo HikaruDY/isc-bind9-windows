@@ -98,6 +98,7 @@ additionaldata_spf(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_spf);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

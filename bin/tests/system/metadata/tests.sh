@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 pzone=parent.nil pfile=parent.db
 czone=child.parent.nil cfile=child.db
@@ -205,6 +204,30 @@ newkey=$($KEYGEN -a ${DEFAULT_ALGORITHM} -q $czone)
 $SETTIME -A -2d -I +2d $oldkey > settime1.test$n 2>&1 || ret=1
 $SETTIME -i 1d -S $oldkey $newkey > settime2.test$n 2>&1 || ret=1
 $SETTIME -pA $newkey | grep "1970" > /dev/null && ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+key=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $czone)
+
+echo_i "checking -p output time is accepted ($n)"
+t=$($SETTIME -pA $key | sed 's/.*: //')
+$SETTIME -Psync "$t" $key > settime2.test$n 2>&1 || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking -up output time is accepted ($n)"
+t=$($SETTIME -upA $key | sed 's/.*: //')
+$SETTIME -Dsync "$t" $key > settime2.test$n 2>&1 || ret=1
+n=$((n + 1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+
+echo_i "checking -p unset time is accepted ($n)"
+# The Delete timing metadata is unset.
+t=$($SETTIME -pD $key | sed 's/.*: //')
+$SETTIME -Psync "$t" $key > settime2.test$n 2>&1 || ret=1
 n=$((n + 1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status + ret))

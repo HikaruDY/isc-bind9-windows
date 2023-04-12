@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_OBJPOOL_H
-#define ISC_OBJPOOL_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -137,5 +136,3 @@ isc_pool_destroy(isc_pool_t **poolp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_OBJPOOL_H */

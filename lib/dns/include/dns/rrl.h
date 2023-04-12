@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RRL_H
-#define DNS_RRL_H 1
+#pragma once
 
 /*
  * Rate limit DNS responses.
@@ -268,5 +267,3 @@ isc_result_t
 dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RRL_H */

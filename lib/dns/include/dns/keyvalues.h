@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_KEYVALUES_H
-#define DNS_KEYVALUES_H 1
+#pragma once
 
 /*! \file dns/keyvalues.h */
 
@@ -103,5 +102,3 @@
 
 #define DNS_KEY_ED25519SIZE 32
 #define DNS_KEY_ED448SIZE   57
-
-#endif /* DNS_KEYVALUES_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_PX_26_H
-#define IN_1_PX_26_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC2163 */
@@ -24,5 +23,3 @@ typedef struct dns_rdata_in_px {
 	dns_name_t map822;
 	dns_name_t mapx400;
 } dns_rdata_in_px_t;
-
-#endif /* IN_1_PX_26_H */

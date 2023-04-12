@@ -27,10 +27,8 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdbool.h>
-#ifndef WIN32
 #include <arpa/inet.h>
-#endif /* WIN32 */
+#include <stdbool.h>
 
 #include <isc/buffer.h>
 #include <isc/hmac.h>
@@ -38,13 +36,10 @@
 #include <isc/mem.h>
 #include <isc/nonce.h>
 #include <isc/random.h>
+#include <isc/result.h>
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <pk11/site.h>
-
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #ifdef HAVE_FIPS_MODE
@@ -206,8 +201,8 @@ static isc_result_t
 hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
 	REQUIRE(ctx != NULL);
-	unsigned int digestlen;
 	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen = sizeof(digest);
 
 	if (isc_hmac_final(ctx, digest, &digestlen) != ISC_R_SUCCESS) {
 		return (DST_R_OPENSSLFAILURE);
@@ -229,8 +224,8 @@ hmac_sign(const dst_context_t *dctx, isc_buffer_t *sig) {
 static isc_result_t
 hmac_verify(const dst_context_t *dctx, const isc_region_t *sig) {
 	isc_hmac_t *ctx = dctx->ctxdata.hmac_ctx;
-	unsigned int digestlen;
 	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen = sizeof(digest);
 
 	REQUIRE(ctx != NULL);
 

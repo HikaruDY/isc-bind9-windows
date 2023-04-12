@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DBITERATOR_H
-#define DNS_DBITERATOR_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -289,5 +288,3 @@ dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DBITERATOR_H */

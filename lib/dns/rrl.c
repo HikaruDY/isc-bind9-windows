@@ -26,6 +26,7 @@
 #include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/log.h>
@@ -33,7 +34,6 @@
 #include <dns/rcode.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/rrl.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -951,8 +951,8 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e, const char *str1,
 				e->log_qname = qbuf->index;
 				qbuf->e = e;
 				dns_fixedname_init(&qbuf->qname);
-				dns_name_copynf(qname, dns_fixedname_name(
-							       &qbuf->qname));
+				dns_name_copy(qname,
+					      dns_fixedname_name(&qbuf->qname));
 			}
 		}
 		if (qbuf != NULL) {
@@ -1067,7 +1067,7 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 	if (rrl->exempt != NULL) {
 		isc_netaddr_fromsockaddr(&netclient, client_addr);
 		result = dns_acl_match(&netclient, NULL, rrl->exempt,
-				       &view->aclenv, &exempt_match, NULL);
+				       view->aclenv, &exempt_match, NULL);
 		if (result == ISC_R_SUCCESS && exempt_match > 0) {
 			return (DNS_RRL_RESULT_OK);
 		}
@@ -1134,7 +1134,7 @@ dns_rrl(dns_view_t *view, dns_zone_t *zone, const isc_sockaddr_t *client_addr,
 			}
 		}
 		UNLOCK(&rrl->lock);
-		return (ISC_R_SUCCESS);
+		return (DNS_RRL_RESULT_OK);
 	}
 
 	/*

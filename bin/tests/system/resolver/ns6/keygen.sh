@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 #
 # We use rsasha256 here to get a ZSK + KSK that don't fit in 512 bytes.
@@ -32,7 +31,7 @@ infile="${zonefile}.in"
 cp $infile $zonefile
 ksk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -fk $zone)
 zsk=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} $zone)
-cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
+cat $ksk.key $zsk.key dsset-ds.example.net. >> $zonefile
 $SIGNER -P -o $zone $zonefile > /dev/null
 
 # Configure a static key to be used by delv

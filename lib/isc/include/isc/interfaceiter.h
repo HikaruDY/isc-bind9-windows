@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_INTERFACEITER_H
-#define ISC_INTERFACEITER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -126,5 +125,3 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_INTERFACEITER_H */

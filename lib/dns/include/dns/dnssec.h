@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DNSSEC_H
-#define DNS_DNSSEC_H 1
+#pragma once
 
 /*! \file dns/dnssec.h */
 
@@ -29,7 +28,7 @@
 
 ISC_LANG_BEGINDECLS
 
-LIBDNS_EXTERNAL_DATA extern isc_stats_t *dns_dnssec_stats;
+extern isc_stats_t *dns_dnssec_stats;
 
 /*%< Maximum number of keys supported in a zone. */
 #define DNS_MAXZONEKEYS 32
@@ -397,5 +396,3 @@ dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
  *\li	Other values indicate error
  */
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DNSSEC_H */

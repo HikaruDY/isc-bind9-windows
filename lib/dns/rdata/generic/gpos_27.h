@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_GPOS_27_H
-#define GENERIC_GPOS_27_H 1
+#pragma once
 
 /*!
  *  \brief per RFC1712 */
@@ -27,5 +26,3 @@ typedef struct dns_rdata_gpos {
 	uint8_t lat_len;
 	uint8_t alt_len;
 } dns_rdata_gpos_t;
-
-#endif /* GENERIC_GPOS_27_H */

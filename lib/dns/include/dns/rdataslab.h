@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATASLAB_H
-#define DNS_RDATASLAB_H 1
+#pragma once
 
 /*! \file dns/rdataslab.h
  * \brief
@@ -169,5 +168,3 @@ dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATASLAB_H */

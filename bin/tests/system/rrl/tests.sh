@@ -13,10 +13,9 @@
 
 # test response rate limiting
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 #set -x
 
@@ -87,7 +86,6 @@ burst () {
     done
     ARGS="+burst +nocookie +continue +time=1 +tries=1 -p ${PORT} $* @$ns2 $DOMS"
     $MDIG $ARGS 2>&1 |                                                  \
-        tr -d '\r' |                                                    \
         tee -a full-$FILENAME |                                         \
         sed -n -e '/^;; AUTHORITY/,/^$/d'			        \
 		-e '/^;; ADDITIONAL/,/^$/d'				\
@@ -155,7 +153,7 @@ ckstats () {
     LABEL="$1"; shift
     TYPE="$1"; shift
     EXPECTED="$1"; shift
-    C=`tr -d '\r' < ns2/named.stats |
+    C=`cat ns2/named.stats |
         sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p" |
         tail -1`
     C=`expr 0$C + 0`
@@ -168,8 +166,7 @@ ckstats () {
 #########
 sec_start
 
-# Tests of referrals to "." must be done before the hints are loaded
-#   or with "additional-from-cache no"
+# Tests of referrals to "." must be done before the hints are loaded.
 burst 5 a1.tld3 +norec
 # basic rate limiting
 burst 3 a1.tld2
@@ -283,7 +280,7 @@ sleep 2
 grep "min-table-size 1" broken.out > /dev/null || setret "min-table-size 0 was not changed to 1"
 
 if [ -f named.pid ]; then
-    $KILL `cat named.pid`
+    kill `cat named.pid`
     setret "named should not have started, but did"
 fi
 

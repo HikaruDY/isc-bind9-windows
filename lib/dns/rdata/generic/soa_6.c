@@ -304,7 +304,6 @@ tostruct_soa(ARGS_TOSTRUCT) {
 	isc_region_t region;
 	dns_rdata_soa_t *soa = target;
 	dns_name_t name;
-	isc_result_t result;
 
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(soa != NULL);
@@ -320,15 +319,12 @@ tostruct_soa(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->origin, NULL);
-	RETERR(name_duporclone(&name, mctx, &soa->origin));
+	name_duporclone(&name, mctx, &soa->origin);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->contact, NULL);
-	result = name_duporclone(&name, mctx, &soa->contact);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	name_duporclone(&name, mctx, &soa->contact);
 
 	soa->serial = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -346,12 +342,6 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	soa->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
-cleanup:
-	if (mctx != NULL) {
-		dns_name_free(&soa->origin, mctx);
-	}
-	return (ISC_R_NOMEMORY);
 }
 
 static void
@@ -372,11 +362,12 @@ freestruct_soa(ARGS_FREESTRUCT) {
 
 static isc_result_t
 additionaldata_soa(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_soa);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_soa);
 
 	return (ISC_R_SUCCESS);
 }

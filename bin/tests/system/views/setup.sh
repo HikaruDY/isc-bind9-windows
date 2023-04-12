@@ -13,9 +13,8 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 # shellcheck source=conf.sh
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 cp -f ns2/example1.db ns2/example.db
 

@@ -31,8 +31,7 @@
  * Driver instance object.
  */
 
-#ifndef _LD_INSTANCE_H_
-#define _LD_INSTANCE_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -72,5 +71,3 @@ load_sample_instance_zones(sample_instance_t *inst);
 
 void
 destroy_sample_instance(sample_instance_t **sample_instp);
-
-#endif /* !_LD_INSTANCE_H_ */

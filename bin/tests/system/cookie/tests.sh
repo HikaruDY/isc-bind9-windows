@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 n=0
@@ -23,7 +22,7 @@ n=0
 getcookie() {
 	awk '$2 == "COOKIE:" {
 		print $3;
-	}' < $1 | tr -d '\r'
+	}' < $1
 }
 
 fullcookie() {
@@ -166,6 +165,40 @@ grep "flags: qr[^;]* aa[ ;]" dig.out.test$n > /dev/null && ret=1
 grep "flags: qr[^;]* ad[ ;]" dig.out.test$n > /dev/null && ret=1
 grep BADCOOKIE dig.out.test$n > /dev/null || ret=1
 linecount=`getcookie dig.out.test$n | wc -l`
+if [ $linecount != 2 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking +qr +showbadcookie ($n)"
+ret=0
+$DIG $DIGOPTS +qr +cookie +showbadcookie soa @10.53.0.3 > dig.out.test$n
+noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
+badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
+server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
+good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $noerror != 3 ]; then ret=1; fi
+if [ $badcookie != 1 ]; then ret=1; fi
+if [ $server != 3 ]; then ret=1; fi
+if [ $good != 2 ]; then ret=1; fi
+if [ $linecount != 4 ]; then ret=1; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
+echo_i "checking +showbadcookie ($n)"
+ret=0
+$DIG $DIGOPTS +cookie +showbadcookie soa @10.53.0.3 > dig.out.test$n
+noerror=$(grep "status: NOERROR" dig.out.test$n | wc -l)
+badcookie=$(grep "status: BADCOOKIE" dig.out.test$n | wc -l)
+server=$(grep "COOKIE: ................................................" dig.out.test$n | wc -l)
+good=$(grep "COOKIE: ................................................ (good)" dig.out.test$n | wc -l)
+linecount=`getcookie dig.out.test$n | wc -l`
+if [ $noerror != 1 ]; then ret=1; fi
+if [ $badcookie != 1 ]; then ret=1; fi
+if [ $server != 2 ]; then ret=1; fi
+if [ $good != 2 ]; then ret=1; fi
 if [ $linecount != 2 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

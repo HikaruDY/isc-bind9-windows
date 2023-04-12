@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -229,6 +228,15 @@ echo_i "checking RFC 4592: ghost.*.example. QTYPE=MX, QCLASS=IN ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.1 "ghost.*.example" MX IN > dig.out.ns1.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns1.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns1.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking RFC 4592: _foo._udp.bar.example. QTYPE=SRV, QCLASS=IN ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.1 "_foo._udp.bar.example" SRV IN > dig.out.ns1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

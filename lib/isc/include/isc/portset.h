@@ -23,8 +23,7 @@
  * in a place that can be accessed from multiple threads.
  */
 
-#ifndef ISC_PORTSET_H
-#define ISC_PORTSET_H 1
+#pragma once
 
 /***
  ***	Imports
@@ -134,5 +133,3 @@ isc_portset_removerange(isc_portset_t *portset, in_port_t port_lo,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_PORTSET_H */

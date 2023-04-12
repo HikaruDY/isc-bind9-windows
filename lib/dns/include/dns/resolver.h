@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RESOLVER_H
-#define DNS_RESOLVER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -49,8 +48,8 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/event.h>
 #include <isc/lang.h>
-#include <isc/socket.h>
 #include <isc/stats.h>
 
 #include <dns/fixedname.h>
@@ -76,7 +75,8 @@ typedef struct dns_fetchevent {
 	dns_dbnode_t	     *node;
 	dns_rdataset_t	     *rdataset;
 	dns_rdataset_t	     *sigrdataset;
-	dns_fixedname_t	      foundname;
+	dns_fixedname_t	      fname;
+	dns_name_t	     *foundname;
 	const isc_sockaddr_t *client;
 	dns_messageid_t	      id;
 	isc_result_t	      vresult;
@@ -96,13 +96,11 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 #define DNS_FETCHOPT_NOEDNS0	 0x00000008 /*%< Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY 0x00000010 /*%< Only use forwarders. */
 #define DNS_FETCHOPT_NOVALIDATE	 0x00000020 /*%< Disable validation. */
-#define DNS_FETCHOPT_EDNS512                                       \
-	0x00000040			 /*%< Advertise a 512 byte \
-					  *   UDP buffer. */
-#define DNS_FETCHOPT_WANTNSID 0x00000080 /*%< Request NSID */
-#define DNS_FETCHOPT_PREFETCH 0x00000100 /*%< Do prefetch */
-#define DNS_FETCHOPT_NOCDFLAG 0x00000200 /*%< Don't set CD flag. */
-#define DNS_FETCHOPT_NONTA    0x00000400 /*%< Ignore NTA table. */
+#define DNS_FETCHOPT_OBSOLETE1	 0x00000040 /*%< Obsolete */
+#define DNS_FETCHOPT_WANTNSID	 0x00000080 /*%< Request NSID */
+#define DNS_FETCHOPT_PREFETCH	 0x00000100 /*%< Do prefetch */
+#define DNS_FETCHOPT_NOCDFLAG	 0x00000200 /*%< Don't set CD flag. */
+#define DNS_FETCHOPT_NONTA	 0x00000400 /*%< Ignore NTA table. */
 /* RESERVED ECS				0x00000000 */
 /* RESERVED ECS				0x00001000 */
 /* RESERVED ECS				0x00002000 */
@@ -167,11 +165,10 @@ typedef enum { dns_quotatype_zone = 0, dns_quotatype_server } dns_quotatype_t;
 
 isc_result_t
 dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
-		    unsigned int ntasks, unsigned int ndisp,
-		    isc_socketmgr_t *socketmgr, isc_timermgr_t *timermgr,
-		    unsigned int options, dns_dispatchmgr_t *dispatchmgr,
-		    dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
-		    dns_resolver_t **resp);
+		    unsigned int ntasks, unsigned int ndisp, isc_nm_t *nm,
+		    isc_timermgr_t *timermgr, unsigned int options,
+		    dns_dispatchmgr_t *dispatchmgr, dns_dispatch_t *dispatchv4,
+		    dns_dispatch_t *dispatchv6, dns_resolver_t **resp);
 
 /*%<
  * Create a resolver.
@@ -189,7 +186,7 @@ dns_resolver_create(dns_view_t *view, isc_taskmgr_t *taskmgr,
  *
  *\li	'ntasks' > 0.
  *
- *\li	'socketmgr' is a valid socket manager.
+ *\li	'nm' is a valid network manager.
  *
  *\li	'timermgr' is a valid timer manager.
  *
@@ -417,9 +414,6 @@ dns_resolver_dispatchv4(dns_resolver_t *resolver);
 dns_dispatch_t *
 dns_resolver_dispatchv6(dns_resolver_t *resolver);
 
-isc_socketmgr_t *
-dns_resolver_socketmgr(dns_resolver_t *resolver);
-
 isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver);
 
@@ -441,7 +435,7 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl);
  *\li	'resolver' to be valid.
  */
 
-isc_result_t
+void
 dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 			  const dns_name_t *name, in_port_t port);
 /*%<
@@ -669,23 +663,6 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp);
  */
 
 void
-dns_resolver_setquerydscp4(dns_resolver_t *resolver, isc_dscp_t dscp);
-isc_dscp_t
-dns_resolver_getquerydscp4(dns_resolver_t *resolver);
-
-void
-dns_resolver_setquerydscp6(dns_resolver_t *resolver, isc_dscp_t dscp);
-isc_dscp_t
-dns_resolver_getquerydscp6(dns_resolver_t *resolver);
-/*%
- * Get and set the DSCP values for the resolver's IPv4 and IPV6 query
- * sources.
- *
- * Requires:
- * \li	resolver to be valid.
- */
-
-void
 dns_resolver_setmaxdepth(dns_resolver_t *resolver, unsigned int maxdepth);
 unsigned int
 dns_resolver_getmaxdepth(dns_resolver_t *resolver);
@@ -743,5 +720,3 @@ dns_resolver_setfuzzing(void);
 #endif /* ifdef ENABLE_AFL */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RESOLVER_H */

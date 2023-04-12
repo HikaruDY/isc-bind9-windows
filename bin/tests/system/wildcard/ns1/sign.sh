@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 SYSTESTDIR=wildcard
 
@@ -26,7 +25,7 @@ zone=nsec
 infile=nsec.db.in
 zonefile=nsec.db
 outfile=nsec.db.signed
-dssets="$dssets dsset-${zone}${TP}"
+dssets="$dssets dsset-${zone}."
 
 keyname1=$($KEYGEN -a ${DEFAULT_ALGORITHM} -n zone $zone 2> /dev/null)
 keyname2=$($KEYGEN -f KSK -a ${DEFAULT_ALGORITHM} -n zone $zone 2> /dev/null)
@@ -55,7 +54,7 @@ zone=nsec3
 infile=nsec3.db.in
 zonefile=nsec3.db
 outfile=nsec3.db.signed
-dssets="$dssets dsset-${zone}${TP}"
+dssets="$dssets dsset-${zone}."
 
 keyname1=$($KEYGEN -a ${DEFAULT_ALGORITHM} -n zone $zone 2> /dev/null)
 keyname2=$($KEYGEN -f KSK -a ${DEFAULT_ALGORITHM} -n zone $zone 2> /dev/null)

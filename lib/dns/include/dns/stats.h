@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_STATS_H
-#define DNS_STATS_H 1
+#pragma once
 
 /*! \file dns/stats.h */
 
@@ -122,8 +121,9 @@ enum {
 	dns_cachestatscounter_querymisses = 4,
 	dns_cachestatscounter_deletelru = 5,
 	dns_cachestatscounter_deletettl = 6,
+	dns_cachestatscounter_coveringnsec = 7,
 
-	dns_cachestatscounter_max = 7,
+	dns_cachestatscounter_max = 8,
 
 	/*%
 	 * Query statistics counters (obsolete).
@@ -458,7 +458,7 @@ enum {
 /*%<
  * (Obsoleted)
  */
-LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
+extern const char *dns_statscounter_names[];
 
 /*%
  * Attributes for statistics counters of RRset and Rdatatype types.
@@ -822,5 +822,3 @@ dns_stats_freecounters(isc_mem_t *mctx, uint64_t **ctrp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_STATS_H */

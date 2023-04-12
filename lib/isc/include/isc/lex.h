@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_LEX_H
-#define ISC_LEX_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -443,5 +442,3 @@ isc_lex_isfile(isc_lex_t *lex);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_LEX_H */

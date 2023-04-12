@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT} +tries=1 +time=2"
 
@@ -33,9 +32,9 @@ resolution_succeeds() {
 resolution_fails() {
 	_servfail=0
 	_timeout=0
-	$DIG $DIGOPTS +tcp +tries=3 +time=5 @10.53.0.1 ${1} SOA > dig.out.test$n
-	grep "status: SERVFAIL" dig.out.test$n > /dev/null && _servfail=1
-	grep "connection timed out" dig.out.test$n > /dev/null && _timeout=1
+	$DIG $DIGOPTS +tcp +tries=3 +time=5 @10.53.0.1 ${1} TXT > dig.out.test$n
+	grep -F "status: SERVFAIL" dig.out.test$n > /dev/null && _servfail=1
+	grep -F "timed out" dig.out.test$n > /dev/null && _timeout=1
 	if [ $_servfail -eq 1 ] || [ $_timeout -eq 1 ]; then
 		return 0
 	else
@@ -107,7 +106,8 @@ n=`expr $n + 1`
 echo_i "checking drop edns server setup ($n)"
 ret=0
 $DIG $DIGOPTS +edns @10.53.0.2 dropedns soa > dig.out.1.test$n && ret=1
-grep "connection timed out; no servers could be reached" dig.out.1.test$n > /dev/null || ret=1
+grep "timed out" dig.out.1.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns @10.53.0.2 dropedns soa > dig.out.2.test$n || ret=1
 grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.2.test$n > /dev/null && ret=1
@@ -115,7 +115,8 @@ $DIG $DIGOPTS +noedns +tcp @10.53.0.2 dropedns soa > dig.out.3.test$n || ret=1
 grep "status: NOERROR" dig.out.3.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.3.test$n > /dev/null && ret=1
 $DIG $DIGOPTS +edns +tcp @10.53.0.2 dropedns soa > dig.out.4.test$n && ret=1
-grep "connection timed out; no servers could be reached" dig.out.4.test$n > /dev/null || ret=1
+grep "timed out" dig.out.4.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -130,7 +131,8 @@ n=`expr $n + 1`
 echo_i "checking drop edns + no tcp server setup ($n)"
 ret=0
 $DIG $DIGOPTS +edns @10.53.0.3 dropedns-notcp soa > dig.out.1.test$n && ret=1
-grep "connection timed out; no servers could be reached" dig.out.1.test$n > /dev/null || ret=1
+grep "timed out" dig.out.1.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns +tcp @10.53.0.3 dropedns-notcp soa > dig.out.2.test$n && ret=1
 grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns @10.53.0.3 dropedns-notcp soa > dig.out.3.test$n || ret=1
@@ -186,14 +188,15 @@ n=`expr $n + 1`
 
 echo_i "checking edns 512 server setup ($n)"
 ret=0
-$DIG $DIGOPTS +edns @10.53.0.6 edns512 soa > dig.out.1.test$n || ret=1
+$DIG $DIGOPTS +edns @10.53.0.6 edns512 txt > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.1.test$n > /dev/null || ret=1
-$DIG $DIGOPTS +edns +tcp @10.53.0.6 edns512 soa > dig.out.2.test$n || ret=1
+$DIG $DIGOPTS +edns +tcp @10.53.0.6 edns512 txt > dig.out.2.test$n || ret=1
 grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.2.test$n > /dev/null || ret=1
-$DIG $DIGOPTS +edns +dnssec @10.53.0.6 edns512 soa > dig.out.3.test$n && ret=1
-grep "connection timed out; no servers could be reached" dig.out.3.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +edns +dnssec @10.53.0.6 edns512 txt > dig.out.3.test$n && ret=1
+grep "timed out" dig.out.3.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.3.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +dnssec +bufsize=512 +ignore @10.53.0.6 edns512 soa > dig.out.4.test$n || ret=1
 grep "status: NOERROR" dig.out.4.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.4.test$n > /dev/null || ret=1
@@ -204,7 +207,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking recursive lookup to edns 512 server succeeds ($n)"
 ret=0
-resolution_succeeds edns512. || ret=1
+retry_quiet 3 resolution_succeeds edns512. || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -217,7 +220,8 @@ grep "EDNS: version:" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +tcp @10.53.0.7 edns512-notcp soa > dig.out.2.test$n && ret=1
 grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +dnssec @10.53.0.7 edns512-notcp soa > dig.out.3.test$n && ret=1
-grep "connection timed out; no servers could be reached" dig.out.3.test$n > /dev/null || ret=1
+grep "timed out" dig.out.3.test$n > /dev/null || ret=1
+grep ";; no servers could be reached" dig.out.3.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +dnssec +bufsize=512 +ignore @10.53.0.7 edns512-notcp soa > dig.out.4.test$n || ret=1
 grep "status: NOERROR" dig.out.4.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.4.test$n > /dev/null || ret=1
@@ -238,18 +242,6 @@ ret=0
 sent=`grep -c -F "sending packet to 10.53.0.7" ns1/named.run`
 if [ $sent -ge 10 ]; then
 	echo_i "ns1 sent $sent queries to ns7, expected less than 10"
-	ret=1
-fi
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "checking that TCP failures do not influence EDNS statistics in the ADB ($n)"
-ret=0
-rndc_dumpdb ns1 -adb || ret=1
-timeouts512=`sed -n "s|.*10\.53\.0\.7.*\[edns \([0-9/][0-9/]*\).*|\1|p" ns1/named_dump.db.test$n | awk -F/ '{print $NF}'`
-if [ $timeouts512 -ne 0 ]; then
-	echo_i "512-byte EDNS timeouts according to ADB: $timeouts512, expected: 0"
 	ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi

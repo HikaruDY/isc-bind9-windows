@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RDATALIST_P_H
-#define DNS_RDATALIST_P_H
+#pragma once
 
 /*! \file */
 
@@ -61,5 +60,3 @@ void
 isc__rdatalist_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RDATALIST_P_H */

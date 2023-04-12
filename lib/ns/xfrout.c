@@ -18,6 +18,7 @@
 #include <isc/mem.h>
 #include <isc/netmgr.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/stats.h>
 #include <isc/util.h>
 
@@ -32,7 +33,6 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/result.h>
 #include <dns/rriterator.h>
 #include <dns/soa.h>
 #include <dns/stats.h>
@@ -848,7 +848,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		/* zone table has a match */
 		switch (dns_zone_gettype(zone)) {
 		/*
-		 * Master, slave, and mirror zones are OK for transfer.
+		 * Primary, secondary, and mirror zones are OK for transfer.
 		 */
 		case dns_zone_primary:
 		case dns_zone_secondary:
@@ -972,23 +972,6 @@ got_soa:
 	if (reqtype == dns_rdatatype_ixfr) {
 		size_t jsize;
 		uint64_t dbsize;
-
-		/*
-		 * Outgoing IXFR may have been disabled for this peer
-		 * or globally.
-		 */
-		if ((client->attributes & NS_CLIENTATTR_TCP) != 0) {
-			bool provide_ixfr;
-
-			provide_ixfr = client->view->provideixfr;
-			if (peer != NULL) {
-				(void)dns_peer_getprovideixfr(peer,
-							      &provide_ixfr);
-			}
-			if (provide_ixfr == false) {
-				goto axfr_fallback;
-			}
-		}
 
 		if (!have_soa) {
 			FAILC(DNS_R_FORMERR, "IXFR request missing SOA");
@@ -1467,7 +1450,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			 * when compressed even if they do not fit when
 			 * uncompressed, but surely we don't want
 			 * to send such monstrosities to an unsuspecting
-			 * slave.
+			 * secondary.
 			 */
 			if (n_rrs == 0) {
 				xfrout_log(xfr, ISC_LOG_WARNING,

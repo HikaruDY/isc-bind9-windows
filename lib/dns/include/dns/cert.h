@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_CERT_H
-#define DNS_CERT_H 1
+#pragma once
 
 /*! \file dns/cert.h */
 
@@ -59,5 +58,3 @@ dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_CERT_H */

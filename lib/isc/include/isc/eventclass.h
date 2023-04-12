@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_EVENTCLASS_H
-#define ISC_EVENTCLASS_H 1
+#pragma once
 
 /*! \file isc/eventclass.h
  ***** Registry of Predefined Event Type Classes
@@ -44,5 +43,3 @@
 #define ISC_EVENTCLASS_ISCCC	   ISC_EVENTCLASS(8)
 #define ISC_EVENTCLASS_NS	   ISC_EVENTCLASS(9)
 /*@}*/
-
-#endif /* ISC_EVENTCLASS_H */

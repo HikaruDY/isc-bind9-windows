@@ -60,6 +60,7 @@
 #include <isc/once.h>
 #include <isc/print.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -76,7 +77,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/sdlz.h>
 #include <dns/types.h>
 
@@ -998,7 +998,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	}
 
 	if (foundname != NULL) {
-		dns_name_copynf(xname, foundname);
+		dns_name_copy(xname, foundname);
 	}
 
 	if (nodep != NULL) {
@@ -1193,8 +1193,9 @@ issecure(dns_db_t *db) {
 }
 
 static unsigned int
-nodecount(dns_db_t *db) {
+nodecount(dns_db_t *db, dns_dbtree_t tree) {
 	UNUSED(db);
+	UNUSED(tree);
 
 	return (0);
 }
@@ -1241,57 +1242,34 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 }
 
 static dns_dbmethods_t sdlzdb_methods = {
-	attach,
-	detach,
-	beginload,
-	endload,
-	NULL, /* serialize */
-	dump,
-	currentversion,
-	newversion,
-	attachversion,
-	closeversion,
-	findnode,
-	find,
-	findzonecut,
-	attachnode,
-	detachnode,
-	expirenode,
-	printnode,
-	createiterator,
-	findrdataset,
-	allrdatasets,
-	addrdataset,
-	subtractrdataset,
-	deleterdataset,
-	issecure,
-	nodecount,
-	ispersistent,
-	overmem,
-	settask,
-	getoriginnode,
-	NULL, /* transfernode */
-	NULL, /* getnsec3parameters */
-	NULL, /* findnsec3node */
-	NULL, /* setsigningtime */
-	NULL, /* getsigningtime */
-	NULL, /* resigned */
-	NULL, /* isdnssec */
-	NULL, /* getrrsetstats */
-	NULL, /* rpz_attach */
-	NULL, /* rpz_ready */
-	findnodeext,
-	findext,
-	NULL, /* setcachestats */
-	NULL, /* hashsize */
-	NULL, /* nodefullname */
-	NULL, /* getsize */
-	NULL, /* setservestalettl */
-	NULL, /* getservestalettl */
-	NULL, /* setservestalerefresh */
-	NULL, /* getservestalerefresh */
-	NULL, /* setgluecachestats */
-	NULL  /* adjusthashsize */
+	attach,		detach,		beginload,
+	endload,	dump,		currentversion,
+	newversion,	attachversion,	closeversion,
+	findnode,	find,		findzonecut,
+	attachnode,	detachnode,	expirenode,
+	printnode,	createiterator, findrdataset,
+	allrdatasets,	addrdataset,	subtractrdataset,
+	deleterdataset, issecure,	nodecount,
+	ispersistent,	overmem,	settask,
+	getoriginnode,	NULL,		      /* transfernode */
+	NULL,				      /* getnsec3parameters */
+	NULL,				      /* findnsec3node */
+	NULL,				      /* setsigningtime */
+	NULL,				      /* getsigningtime */
+	NULL,				      /* resigned */
+	NULL,				      /* isdnssec */
+	NULL,				      /* getrrsetstats */
+	NULL,				      /* rpz_attach */
+	NULL,				      /* rpz_ready */
+	findnodeext,	findext,	NULL, /* setcachestats */
+	NULL,				      /* hashsize */
+	NULL,				      /* nodefullname */
+	NULL,				      /* getsize */
+	NULL,				      /* setservestalettl */
+	NULL,				      /* getservestalettl */
+	NULL,				      /* setservestalerefresh */
+	NULL,				      /* getservestalerefresh */
+	NULL,				      /* setgluecachestats */
 };
 
 /*
@@ -1387,7 +1365,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	attachnode(iterator->db, sdlziter->current, nodep);
 	if (name != NULL) {
-		dns_name_copynf(sdlziter->current->name, name);
+		dns_name_copy(sdlziter->current->name, name);
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_SUCCESS);
@@ -1402,7 +1380,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
-	dns_name_copynf(dns_rootname, name);
+	dns_name_copy(dns_rootname, name);
 	return (ISC_R_SUCCESS);
 }
 

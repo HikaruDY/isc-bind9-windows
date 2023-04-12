@@ -236,7 +236,7 @@ tostruct_ch_a(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, name_length(&name));
 
 	dns_name_init(&a->ch_addr_dom, NULL);
-	RETERR(name_duporclone(&name, mctx, &a->ch_addr_dom));
+	name_duporclone(&name, mctx, &a->ch_addr_dom);
 	a->ch_addr = htons(uint16_fromregion(&region));
 	a->mctx = mctx;
 	return (ISC_R_SUCCESS);
@@ -263,6 +263,7 @@ additionaldata_ch_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 
