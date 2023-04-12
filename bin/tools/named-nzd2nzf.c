@@ -21,7 +21,6 @@
 
 #include <isc/print.h>
 
-#include <dns/lmdb.h>
 #include <dns/view.h>
 
 int

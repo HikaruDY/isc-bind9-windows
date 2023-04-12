@@ -34,11 +34,11 @@ def rndc_loop(test_state, domain):
     until the test is considered finished, ignoring errors
     """
     rndc_commands = [
-        ["addzone", domain, '{ type master; file "example.db"; };'],
+        ["addzone", domain, '{ type primary; file "example.db"; };'],
         [
             "modzone",
             domain,
-            '{ type master; file "example.db"; allow-transfer { any; }; };',
+            '{ type primary; file "example.db"; allow-transfer { any; }; };',
         ],
         ["delzone", domain],
     ]

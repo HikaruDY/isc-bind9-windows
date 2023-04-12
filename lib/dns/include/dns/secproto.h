@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_SECPROTO_H
-#define DNS_SECPROTO_H 1
+#pragma once
 
 /*! \file dns/secproto.h */
 
@@ -61,5 +60,3 @@ dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_SECPROTO_H */

@@ -13,9 +13,8 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 # shellcheck source=conf.sh
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 dig_with_opts() {
 	"$DIG" +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noauth -p "${PORT}" "$@"
@@ -25,7 +24,7 @@ dig_with_shortopts() {
 	"$DIG" +tcp +short -p "${PORT}" "$@"
 }
 
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 
@@ -157,7 +156,7 @@ while [ $i -lt 50 ]; do
 	# Add a new zone to the configuration.
 	cat >> ns2/zones.conf <<-EOF
 	zone "${zone_name}" {
-	    type master;
+	    type primary;
 	    file "db.${zone_name}";
 	    dnssec-dnskey-kskonly yes;
 	    auto-dnssec maintain;

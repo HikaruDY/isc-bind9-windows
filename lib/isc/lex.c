@@ -29,6 +29,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include "errno2result.h"
+
 typedef struct inputsource {
 	isc_result_t result;
 	bool is_file;
@@ -428,7 +430,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 #endif /* if defined(HAVE_FLOCKFILE) && defined(HAVE_GETC_UNLOCKED) */
 				if (c == EOF) {
 					if (ferror(stream)) {
-						source->result = ISC_R_IOERROR;
+						source->result =
+							isc__errno2result(
+								errno);
 						result = source->result;
 						goto done;
 					}
@@ -913,8 +917,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			remaining--;
 			break;
 		default:
-			FATAL_ERROR(__FILE__, __LINE__, "Unexpected state %d",
-				    state);
+			FATAL_ERROR("Unexpected state %d", state);
 		}
 	} while (!done);
 

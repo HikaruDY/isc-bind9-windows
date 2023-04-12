@@ -16,6 +16,7 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/result.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
@@ -30,7 +31,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/view.h>
 
@@ -488,7 +488,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
 			      "checkhints%s%s: unable to get root NS rrset "
 			      "from hints: %s",
-			      sep, viewname, dns_result_totext(result));
+			      sep, viewname, isc_result_totext(result));
 		goto cleanup;
 	}
 
@@ -499,7 +499,7 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db) {
 			      DNS_LOGMODULE_HINTS, ISC_LOG_WARNING,
 			      "checkhints%s%s: unable to get root NS rrset "
 			      "from cache: %s",
-			      sep, viewname, dns_result_totext(result));
+			      sep, viewname, isc_result_totext(result));
 		goto cleanup;
 	}
 

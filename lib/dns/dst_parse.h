@@ -28,8 +28,7 @@
  */
 
 /*! \file */
-#ifndef DST_DST_PARSE_H
-#define DST_DST_PARSE_H 1
+#pragma once
 
 #include <isc/lang.h>
 
@@ -130,5 +129,3 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			  const char *directory);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DST_DST_PARSE_H */

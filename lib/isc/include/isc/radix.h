@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef _RADIX_H
-#define _RADIX_H
+#pragma once
 
 #include <inttypes.h>
 #include <string.h>
@@ -220,5 +219,3 @@ isc_radix_process(isc_radix_tree_t *radix, isc_radix_processfunc_t func);
 	}                                    \
 	}                                    \
 	while (0)
-
-#endif /* _RADIX_H */

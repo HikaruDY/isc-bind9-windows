@@ -13,6 +13,8 @@
 
 /*! \file */
 
+/* aliases for the exported symbols */
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <string.h>
@@ -20,7 +22,6 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/ht.h>
-#include <isc/lib.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/netaddr.h>
@@ -34,7 +35,6 @@
 #include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdataset.h>
-#include <dns/result.h>
 #include <dns/types.h>
 #include <dns/view.h>
 
@@ -350,7 +350,7 @@ plugin_register(const char *parameters, const void *cfg, const char *cfg_file,
 				       cfg_line, mctx, lctx, actx));
 	}
 
-	isc_ht_init(&inst->ht, mctx, 16);
+	isc_ht_init(&inst->ht, mctx, 16, ISC_HT_CASE_SENSITIVE);
 	isc_mutex_init(&inst->hlock);
 
 	/*

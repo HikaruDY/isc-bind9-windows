@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_DNSSIG_46_H
-#define GENERIC_DNSSIG_46_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC2535 */
@@ -30,5 +29,3 @@ typedef struct dns_rdata_rrsig {
 	uint16_t siglen;
 	unsigned char *signature;
 } dns_rdata_rrsig_t;
-
-#endif /* GENERIC_DNSSIG_46_H */

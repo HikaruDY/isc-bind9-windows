@@ -291,6 +291,7 @@ additionaldata_tlsa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

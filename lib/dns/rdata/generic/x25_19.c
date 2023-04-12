@@ -184,6 +184,7 @@ additionaldata_x25(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_x25);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

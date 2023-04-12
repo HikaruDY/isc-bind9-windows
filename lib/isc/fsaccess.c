@@ -11,92 +11,75 @@
  * information regarding copyright ownership.
  */
 
-/*! \file
- * \brief
- * This file contains the OS-independent functionality of the API.
- */
+#include <errno.h>
 #include <stdbool.h>
+#include <sys/stat.h>
 
 #include <isc/fsaccess.h>
-#include <isc/print.h>
 #include <isc/result.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
-/*!
- * Shorthand.  Maybe ISC__FSACCESS_PERMISSIONBITS should not even be in
- * <isc/fsaccess.h>.  Could check consistency with sizeof(isc_fsaccess_t)
- * and the number of bits in each function.
- */
-#define STEP  (ISC__FSACCESS_PERMISSIONBITS)
-#define GROUP (STEP)
-#define OTHER (STEP * 2)
+#include "../fsaccess_common_p.h"
+#include "errno2result.h"
 
-void
-isc_fsaccess_add(int trustee, int permission, isc_fsaccess_t *access) {
-	REQUIRE(trustee <= 0x7);
-	REQUIRE(permission <= 0xFF);
-
-	if ((trustee & ISC_FSACCESS_OWNER) != 0) {
-		*access |= permission;
-	}
-
-	if ((trustee & ISC_FSACCESS_GROUP) != 0) {
-		*access |= (permission << GROUP);
-	}
-
-	if ((trustee & ISC_FSACCESS_OTHER) != 0) {
-		*access |= (permission << OTHER);
-	}
-}
-
-void
-isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access) {
-	REQUIRE(trustee <= 0x7);
-	REQUIRE(permission <= 0xFF);
-
-	if ((trustee & ISC_FSACCESS_OWNER) != 0) {
-		*access &= ~permission;
-	}
-
-	if ((trustee & ISC_FSACCESS_GROUP) != 0) {
-		*access &= ~(permission << GROUP);
-	}
-
-	if ((trustee & ISC_FSACCESS_OTHER) != 0) {
-		*access &= ~(permission << OTHER);
-	}
-}
-
-static isc_result_t
-check_bad_bits(isc_fsaccess_t access, bool is_dir) {
+isc_result_t
+isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
+	struct stat statb;
+	mode_t mode;
+	bool is_dir = false;
 	isc_fsaccess_t bits;
+	isc_result_t result;
 
-	/*
-	 * Check for disallowed user bits.
-	 */
-	if (is_dir) {
-		bits = ISC_FSACCESS_READ | ISC_FSACCESS_WRITE |
-		       ISC_FSACCESS_EXECUTE;
-	} else {
-		bits = ISC_FSACCESS_CREATECHILD | ISC_FSACCESS_ACCESSCHILD |
-		       ISC_FSACCESS_DELETECHILD | ISC_FSACCESS_LISTDIRECTORY;
+	if (stat(path, &statb) != 0) {
+		return (isc__errno2result(errno));
+	}
+
+	if ((statb.st_mode & S_IFDIR) != 0) {
+		is_dir = true;
+	} else if ((statb.st_mode & S_IFREG) == 0) {
+		return (ISC_R_INVALIDFILE);
+	}
+
+	result = isc__fsaccess_check_bad_bits(access, is_dir);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	/*
-	 * Set group bad bits.
+	 * Done with checking bad bits.  Set mode_t.
 	 */
-	bits |= bits << STEP;
-	/*
-	 * Set other bad bits.
-	 */
-	bits |= bits << STEP;
+	mode = 0;
 
-	if ((access & bits) != 0) {
-		if (is_dir) {
-			return (ISC_R_NOTFILE);
-		} else {
-			return (ISC_R_NOTDIRECTORY);
-		}
+#define SET_AND_CLEAR1(modebit)     \
+	if ((access & bits) != 0) { \
+		mode |= modebit;    \
+		access &= ~bits;    \
+	}
+#define SET_AND_CLEAR(user, group, other) \
+	SET_AND_CLEAR1(user);             \
+	bits <<= STEP;                    \
+	SET_AND_CLEAR1(group);            \
+	bits <<= STEP;                    \
+	SET_AND_CLEAR1(other);
+
+	bits = ISC_FSACCESS_READ | ISC_FSACCESS_LISTDIRECTORY;
+
+	SET_AND_CLEAR(S_IRUSR, S_IRGRP, S_IROTH);
+
+	bits = ISC_FSACCESS_WRITE | ISC_FSACCESS_CREATECHILD |
+	       ISC_FSACCESS_DELETECHILD;
+
+	SET_AND_CLEAR(S_IWUSR, S_IWGRP, S_IWOTH);
+
+	bits = ISC_FSACCESS_EXECUTE | ISC_FSACCESS_ACCESSCHILD;
+
+	SET_AND_CLEAR(S_IXUSR, S_IXGRP, S_IXOTH);
+
+	INSIST(access == 0);
+
+	if (chmod(path, mode) < 0) {
+		return (isc__errno2result(errno));
 	}
 
 	return (ISC_R_SUCCESS);

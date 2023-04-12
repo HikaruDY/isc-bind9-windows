@@ -19,8 +19,7 @@ newid=$(expr "0000${newid}" : '.*\(.....\)$')	# prepend leading 0's
 badid=$(expr \( ${oldid} + 7777 \) % 65536 || true)
 badid=$(expr "0000${badid}" : '.*\(.....\)$')	# prepend leading 0's
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=example.
 infile=example.db.in

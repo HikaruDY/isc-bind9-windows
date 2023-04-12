@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_ATMA_22_H
-#define IN_1_ATMA_22_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC1706 */
@@ -24,5 +23,3 @@ typedef struct dns_rdata_in_atma {
 	unsigned char *atma;
 	uint16_t atma_len;
 } dns_rdata_in_atma_t;
-
-#endif /* IN_1_ATMA_22_H */

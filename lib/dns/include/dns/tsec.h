@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_TSEC_H
-#define DNS_TSEC_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -128,5 +127,3 @@ dns_tsec_getkey(dns_tsec_t *tsec, void *keyp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_TSEC_H */

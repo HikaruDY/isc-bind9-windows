@@ -11,8 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+set -e
+
+. ../../conf.sh
 
 zone=example.com.
 infile=example.com.db.in
@@ -34,4 +35,4 @@ if [ -f ../ed25519-supported.file ]; then
 	done
 fi
 
-$SIGNER -P -z -s $starttime -e $endtime -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
+$SIGNER -P -z -s "$starttime" -e "$endtime" -o "$zone" "$zonefile" > /dev/null 2> signer.err || cat signer.err

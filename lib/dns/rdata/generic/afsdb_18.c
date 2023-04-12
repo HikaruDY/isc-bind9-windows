@@ -221,7 +221,7 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
-	RETERR(name_duporclone(&name, mctx, &afsdb->server));
+	name_duporclone(&name, mctx, &afsdb->server);
 	afsdb->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
@@ -249,12 +249,14 @@ additionaldata_afsdb(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_afsdb);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL));
 }
 
 static isc_result_t

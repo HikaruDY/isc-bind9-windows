@@ -11,16 +11,15 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 $SHELL clean.sh
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
 
-$SHELL ../genzone.sh 1 > ns1/primary.db
-$SHELL ../genzone.sh 1 > ns1/duplicate.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 > ns1/primary.db
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 1 > ns1/duplicate.db
 cp bigserial.db ns1/
 cd ns1
 touch primary.db.signed

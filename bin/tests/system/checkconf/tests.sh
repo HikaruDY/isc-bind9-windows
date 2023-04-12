@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -66,7 +65,7 @@ do
 	pat="name field not set to placeholder value"
 	grep "$pat" < checkconf.out$n > /dev/null || ret=1
 	;;
-    bad-update-policy[67].conf|bad-update-policy1[2345].conf)
+    bad-update-policy[67].conf|bad-update-policy1[2345789].conf|bad-update-policy20.conf)
 	pat="missing name field type '.*' found"
 	grep "$pat" < checkconf.out$n > /dev/null || ret=1
 	;;
@@ -80,8 +79,33 @@ do
 	n=`expr $n + 1`
 	echo_i "checking that named-checkconf detects no error in $good ($n)"
 	ret=0
+	if ! $FEATURETEST --with-libnghttp2
+	then
+		case $good in
+		good-doh-*.conf) continue;;
+		good-dot-*.conf) continue;;
+		esac
+	fi
 	$CHECKCONF $good > checkconf.out$n 2>&1
 	if [ $? -ne 0 ]; then echo_i "failed"; ret=1; fi
+	status=`expr $status + $ret`
+done
+
+for lmdb in lmdb-*.conf
+do
+	n=`expr $n + 1`
+	ret=0
+
+	$FEATURETEST --with-lmdb
+	if [ $? -eq 0 ]; then
+		echo_i "checking that named-checkconf detects no error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? -ne 0 ]; then echo_i "failed"; ret=1; fi
+	else
+		echo_i "checking that named-checkconf detects error in $lmdb ($n)"
+		$CHECKCONF $lmdb > checkconf.out$n 2>&1
+		if [ $? -eq 0 ]; then echo_i "failed"; ret=1; fi
+	fi
 	status=`expr $status + $ret`
 done
 
@@ -120,20 +144,17 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking named-checkconf dnssec warnings ($n)"
 ret=0
-# dnssec.1: dnssec-enable is obsolete
+# dnssec.1: auto-dnssec warning
 $CHECKCONF dnssec.1 > checkconf.out$n.1 2>&1
-grep "'dnssec-enable' is obsolete and should be removed" < checkconf.out$n.1 > /dev/null || ret=1
-# dnssec.2: auto-dnssec warning
+grep 'auto-dnssec may only be ' < checkconf.out$n.1 > /dev/null || ret=1
+# dnssec.2: should have no warnings (other than deprecation warning)
 $CHECKCONF dnssec.2 > checkconf.out$n.2 2>&1
-grep 'auto-dnssec may only be ' < checkconf.out$n.2 > /dev/null || ret=1
-# dnssec.3: should have no warnings (other than deprecation warning)
-$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
-grep "option 'auto-dnssec' is deprecated" < checkconf.out$n.3 > /dev/null || ret=1
-lines=$(wc -l < "checkconf.out$n.3")
+grep "option 'auto-dnssec' is deprecated" < checkconf.out$n.2 > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n.2")
 if [ $lines != 1 ]; then ret=1; fi
-# dnssec.4: should have specific deprecation warning
-$CHECKCONF dnssec.4 > checkconf.out$n.4 2>&1
-grep "'auto-dnssec' option is deprecated and will be removed in BIND 9\.19" < checkconf.out$n.4 > /dev/null || ret=1
+# dnssec.3: should have specific deprecation warning
+$CHECKCONF dnssec.3 > checkconf.out$n.3 2>&1
+grep "'auto-dnssec' option is deprecated and will be removed in BIND 9\.19" < checkconf.out$n.3 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -143,8 +164,11 @@ ret=0
 $CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
 grep "option 'managed-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
-grep "option 'dscp' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
-grep "token 'dscp' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'use-v4-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'use-v6-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'avoid-v4-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'avoid-v6-udp-ports' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "token 'port' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 # set -i to ignore deprecate warnings
@@ -420,30 +444,6 @@ if [ $ret -ne 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside auto;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-auto.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.isc.org;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
 echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
@@ -501,15 +501,6 @@ if [ $ret -ne 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'geoip-use-ecs no' generates a warning ($n)"
-ret=0
-$CHECKCONF warn-geoip-use-ecs.conf > checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] || ret=1
-grep "'geoip-use-ecs' is obsolete" < checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
 echo_i "checking named-checkconf kasp errors ($n)"
 ret=0
 $CHECKCONF kasp-and-other-dnssec-options.conf > checkconf.out$n 2>&1 && ret=1
@@ -551,10 +542,44 @@ if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf kasp signatures refresh errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-signatures-refresh.conf > checkconf.out$n 2>&1 && ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh' signatures-refresh must be at most 90% of the signatures-validity" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: policy 'bad-sigrefresh-dnskey' signatures-refresh must be at most 90% of the signatures-validity-dnskey" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines -ne 2 ]; then ret=1; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp key lifetime errors ($n)"
+ret=0
+$CHECKCONF kasp-bad-lifetime.conf > checkconf.out$n 2>&1 && ret=1
+lines=$(grep "dnssec-policy: key lifetime is shorter than the time it takes to do a rollover" < checkconf.out$n | wc -l) || ret=1
+if [ $lines -ne 3 ]; then ret=1; fi
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking named-checkconf kasp predefined key length ($n)"
 ret=0
 $CHECKCONF kasp-ignore-keylen.conf > checkconf.out$n 2>&1 || ret=1
 grep "dnssec-policy: key algorithm ecdsa256 has predefined length; ignoring length value 2048" < checkconf.out$n > /dev/null || ret=1
+if [ $ret -ne 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking named-checkconf kasp warns about weird policies ($n)"
+ret=0
+$CHECKCONF kasp-warning.conf > checkconf.out$n 2>&1 || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 8 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with KSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: algorithm 13 has multiple keys with ZSK role" < checkconf.out$n > /dev/null || ret=1
+grep "dnssec-policy: key lifetime is shorter than 30 days" < checkconf.out$n > /dev/null || ret=1
+lines=$(wc -l < "checkconf.out$n")
+if [ $lines -ne 5 ]; then ret=1; fi
 if [ $ret -ne 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -603,25 +628,15 @@ grep "option 'max-zone-ttl' is ignored when used together with 'dnssec-policy'" 
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
-n=$((n+1))
-echo_i "check that masterfile-format map generates deprecation warning ($n)"
+n=`expr $n + 1`
+echo_i "check obsolete options generate warnings ($n)"
 ret=0
-$CHECKCONF deprecated-masterfile-format-map.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "is deprecated" < checkconf.out$n >/dev/null || ret=1
+$CHECKCONF warn-random-device.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "option 'random-device' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=$((status+ret))
+status=`expr $status + $ret`
 
-n=$((n+1))
-echo_i "check that masterfile-format text and raw don't generate deprecation warning ($n)"
-ret=0
-$CHECKCONF good-masterfile-format-text.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "is deprecated" < checkconf.out$n >/dev/null && ret=1
-$CHECKCONF good-masterfile-format-raw.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "is deprecated" < checkconf.out$n >/dev/null && ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=$((status+ret))
-
-n=$((n+1))
+n=`expr $n + 1`
 echo_i "check that 'check-wildcard no;' succeeds as configured ($n)"
 ret=0
 $CHECKCONF -z check-wildcard-no.conf > checkconf.out$n 2>&1 || ret=1

@@ -199,6 +199,7 @@ additionaldata_isdn(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_isdn);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

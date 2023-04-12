@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_STATSCHANNEL_H
-#define NAMED_STATSCHANNEL_H 1
+#pragma once
 
 /*! \file
  * \brief
@@ -50,5 +49,3 @@ named_stats_dump(named_server_t *server, FILE *fp);
 /*%<
  * Dump statistics counters managed by the server to the file fp.
  */
-
-#endif /* NAMED_STATSCHANNEL_H */

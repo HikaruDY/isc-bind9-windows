@@ -22,6 +22,7 @@
 #include <isc/dir.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -30,10 +31,8 @@
 #include <dns/keymgr.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #define RETERR(x)                            \
 	do {                                 \
@@ -132,12 +131,12 @@ keymgr_settime_remove(dns_dnsseckey_t *key, dns_kasp_t *kasp) {
 			     dns_kasp_retiresafety(kasp);
 	}
 
-	remove = ksk_remove > zsk_remove ? ksk_remove : zsk_remove;
+	remove = ISC_MAX(ksk_remove, zsk_remove);
 	dst_key_settime(key->key, DST_TIME_DELETE, remove);
 }
 
 /*
- * Set the SyncPublish time (when the DS may be submitted to the parent)
+ * Set the SyncPublish time (when the DS may be submitted to the parent).
  *
  */
 static void
@@ -251,7 +250,7 @@ keymgr_prepublication_time(dns_dnsseckey_t *key, dns_kasp_t *kasp,
 					   dns_kasp_zonepropagationdelay(kasp);
 			}
 
-			syncpub = syncpub1 > syncpub2 ? syncpub1 : syncpub2;
+			syncpub = ISC_MAX(syncpub1, syncpub2);
 			dst_key_settime(key->key, DST_TIME_SYNCPUBLISH,
 					syncpub);
 		}
@@ -1681,7 +1680,7 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 		 */
 		prepub = keymgr_prepublication_time(active_key, kasp, lifetime,
 						    now);
-		if (prepub == 0 || prepub > now) {
+		if (prepub > now) {
 			if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 				dst_key_format(active_key->key, keystr,
 					       sizeof(keystr));
@@ -1694,7 +1693,8 @@ keymgr_key_rollover(dns_kasp_key_t *kaspkey, dns_dnsseckey_t *active_key,
 					keystr, keymgr_keyrole(active_key->key),
 					dns_kasp_getname(kasp), (prepub - now));
 			}
-
+		}
+		if (prepub == 0 || prepub > now) {
 			/* No need to start rollover now. */
 			if (*nexttime == 0 || prepub < *nexttime) {
 				*nexttime = prepub;

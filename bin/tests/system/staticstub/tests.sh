@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="-p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 n=0
@@ -116,7 +115,7 @@ done
 grep "2nd sub test data" dig.out.ns2.test2.$n > /dev/null || ret=1
 # re-enable the parent
 copy_setports ns3/named.conf.in tmp
-sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' tmp > ns3/named.conf
+sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type primary; file "example.db.signed"; };/' tmp > ns3/named.conf
 rndc_reload ns3 10.53.0.3
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

@@ -240,7 +240,7 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&mx->mx, NULL);
-	RETERR(name_duporclone(&name, mctx, &mx->mx));
+	name_duporclone(&name, mctx, &mx->mx);
 	mx->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
@@ -275,6 +275,8 @@ additionaldata_mx(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_mx);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
@@ -284,7 +286,7 @@ additionaldata_mx(ARGS_ADDLDATA) {
 		return (ISC_R_SUCCESS);
 	}
 
-	result = (add)(arg, &name, dns_rdatatype_a);
+	result = (add)(arg, &name, dns_rdatatype_a, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -296,7 +298,8 @@ additionaldata_mx(ARGS_ADDLDATA) {
 		return (ISC_R_SUCCESS);
 	}
 
-	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa));
+	return ((add)(arg, dns_fixedname_name(&fixed), dns_rdatatype_tlsa,
+		      NULL));
 }
 
 static isc_result_t

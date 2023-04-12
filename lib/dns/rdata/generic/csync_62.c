@@ -216,6 +216,7 @@ additionaldata_csync(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_csync);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

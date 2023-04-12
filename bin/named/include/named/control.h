@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_CONTROL_H
-#define NAMED_CONTROL_H 1
+#pragma once
 
 /*! \file
  * \brief
@@ -107,5 +106,3 @@ named_controls_shutdown(named_controls_t *controls);
 isc_result_t
 named_control_docommand(isccc_sexpr_t *message, bool readonly,
 			isc_buffer_t **text);
-
-#endif /* NAMED_CONTROL_H */

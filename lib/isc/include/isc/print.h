@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_PRINT_H
-#define ISC_PRINT_H 1
+#pragma once
 
 /*! \file isc/print.h */
 
@@ -22,12 +21,9 @@
 
 #include <isc/formatcheck.h> /* Required for ISC_FORMAT_PRINTF() macro. */
 #include <isc/lang.h>
-#include <isc/platform.h>
 
 /***
  *** Functions
  ***/
 
 #include <stdio.h>
-
-#endif /* ISC_PRINT_H */

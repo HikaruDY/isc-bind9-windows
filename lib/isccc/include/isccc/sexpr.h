@@ -27,8 +27,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef ISCCC_SEXPR_H
-#define ISCCC_SEXPR_H 1
+#pragma once
 
 /*! \file isccc/sexpr.h */
 
@@ -118,5 +117,3 @@ isccc_region_t *
 isccc_sexpr_tobinary(isccc_sexpr_t *sexpr);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCC_SEXPR_H */

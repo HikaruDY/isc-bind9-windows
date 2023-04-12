@@ -111,7 +111,10 @@ def is_supported(alg: Algorithm) -> bool:
             f"{TESTCRYPTO} -q {alg.name}",
             shell=True,
             check=True,
-            env={"KEYGEN": KEYGEN},
+            env={
+                "KEYGEN": KEYGEN,
+                "TMPDIR": os.getenv("TMPDIR", "/tmp"),
+            },
             stdout=subprocess.DEVNULL,
         )
     except subprocess.CalledProcessError as exc:
@@ -219,11 +222,9 @@ def algorithms_env(algs: AlgorithmSet) -> Dict[str, str]:
 
 
 def main():
-    disable_checking = int(os.getenv("DISABLE_ALGORITHM_SUPPORT_CHECKING", "0"))
     try:
         algs = ALGORITHM_SETS[ALGORITHM_SET]
-        if not disable_checking:
-            algs = filter_supported(algs)
+        algs = filter_supported(algs)
         algs = select_random(algs)
         algs_env = algorithms_env(algs)
     except Exception:

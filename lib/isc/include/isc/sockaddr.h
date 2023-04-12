@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SOCKADDR_H
-#define ISC_SOCKADDR_H 1
+#pragma once
 
 /*! \file isc/sockaddr.h */
 
@@ -21,9 +20,8 @@
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
-#ifdef ISC_PLATFORM_HAVESYSUNH
+
 #include <sys/un.h>
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
 /*
  * Any updates to this structure should also be applied in
@@ -35,9 +33,7 @@ struct isc_sockaddr {
 		struct sockaddr_in	sin;
 		struct sockaddr_in6	sin6;
 		struct sockaddr_storage ss;
-#ifdef ISC_PLATFORM_HAVESYSUNH
-		struct sockaddr_un sunix;
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+		struct sockaddr_un	sunix;
 	} type;
 	unsigned int length; /* XXXRTH beginning? */
 	ISC_LINK(struct isc_sockaddr) link;
@@ -250,5 +246,3 @@ isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SOCKADDR_H */

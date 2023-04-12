@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=.
 zonefile=root.db
@@ -20,7 +19,7 @@ infile=root.db.in
 
 (cd ../ns2 && $SHELL keygen.sh )
 
-cat $infile ../ns2/dsset-example$TP ../ns2/dsset-bar$TP > $zonefile
+cat $infile ../ns2/dsset-example. ../ns2/dsset-bar. > $zonefile
 
 zskact=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q $zone)
 zskvanish=$($KEYGEN -3 -a ${DEFAULT_ALGORITHM} -q $zone)

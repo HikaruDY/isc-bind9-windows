@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_OPENPGPKEY_61_H
-#define GENERIC_OPENPGPKEY_61_H 1
+#pragma once
 
 typedef struct dns_rdata_openpgpkey {
 	dns_rdatacommon_t common;
@@ -20,5 +19,3 @@ typedef struct dns_rdata_openpgpkey {
 	uint16_t length;
 	unsigned char *keyring;
 } dns_rdata_openpgpkey_t;
-
-#endif /* GENERIC_OPENPGPKEY_61_H */

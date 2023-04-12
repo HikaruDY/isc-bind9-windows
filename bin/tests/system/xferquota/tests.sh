@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 #
 # Perform tests
@@ -27,11 +26,7 @@ while [ $count != 300 ]; do
         if [ $ticks = 1 ]; then
 	        echo_i "Changing test zone..."
 		cp -f ns1/changing2.db ns1/changing.db
-		if [ ! "$CYGWIN" ]; then
-			$KILL -HUP `cat ns1/named.pid`
-		else
-			rndc_reload ns1 10.53.0.1
-		fi
+                kill -HUP `cat ns1/named.pid`
 	fi
 	sleep 1
 	ticks=`expr $ticks + 1`

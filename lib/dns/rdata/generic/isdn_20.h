@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_ISDN_20_H
-#define GENERIC_ISDN_20_H 1
+#pragma once
 
 /*!
  * \brief Per RFC1183 */
@@ -25,5 +24,3 @@ typedef struct dns_rdata_isdn {
 	uint8_t isdn_len;
 	uint8_t subaddress_len;
 } dns_rdata_isdn_t;
-
-#endif /* GENERIC_ISDN_20_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_CFG_H
-#define ISCCFG_CFG_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -407,20 +406,6 @@ cfg_obj_assockaddr(const cfg_obj_t *obj);
  *      if necessary.
  */
 
-isc_dscp_t
-cfg_obj_getdscp(const cfg_obj_t *obj);
-/*%<
- * Returns the DSCP value of a configuration object representing a
- * socket address.
- *
- * Requires:
- * \li     'obj' points to a valid configuration object of a
- *         socket address type.
- *
- * Returns:
- * \li     DSCP value associated with a sockaddr, or -1.
- */
-
 bool
 cfg_obj_isnetprefix(const cfg_obj_t *obj);
 /*%<
@@ -622,5 +607,3 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCFG_CFG_H */

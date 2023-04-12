@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_SYMTAB_H
-#define ISC_SYMTAB_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -134,5 +133,3 @@ isc_symtab_undefine(isc_symtab_t *symtab, const char *key, unsigned int type);
 unsigned int
 isc_symtab_count(isc_symtab_t *symtab);
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_SYMTAB_H */

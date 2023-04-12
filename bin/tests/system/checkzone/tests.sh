@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=1
@@ -101,14 +100,6 @@ n=$((n+1))
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
-echo_i "checking with max ttl (map) ($n)"
-ret=0
-$CHECKZONE -f map -l 300 example good1.db.map > test.out1.$n 2>&1 && ret=1
-$CHECKZONE -f map -l 600 example good1.db.map > test.out2.$n 2>&1 || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
 echo_i "checking for no 'inherited owner' warning on '\$INCLUDE file' with no new \$ORIGIN ($n)"
 ret=0
 $CHECKZONE example zones/nowarn.inherited.owner.db > test.out1.$n 2>&1 || ret=1
@@ -183,6 +174,27 @@ ret=0
 $CHECKZONE example.com zones/delegating-ns-address-below-dname.db > test.out.$n 2>&1 || ret=1
 grep "is below a DNAME" test.out.$n >/dev/null || ret=1
 n=$((n+1))
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "checking that named-compilezone works when reading input from stdin ($n)"
+ret=0
+# Step 1: take raw input from stdin and convert it to text/relative format.
+# Last argument "-" is optional, but it says more explicitly that we're reading from stdin.
+cat zones/zone1.db | ./named-compilezone -f text -F text -s relative \
+        -o zones/zone1_stdin.txt zone1.com - > /dev/null || ret=1
+status=$((status+ret))
+
+ret=0
+# Step 2: take raw input from file and convert it to text format.
+./named-compilezone -f text -F text -s relative -o zones/zone1_file.txt \
+        zone1.com zones/zone1.db > /dev/null || ret=1
+status=$((status+ret))
+
+ret=0
+# Step 3: Ensure that output conversion from stdin is the same as the output conversion from a file.
+diff zones/zone1_file.txt zones/zone1_stdin.txt >/dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 

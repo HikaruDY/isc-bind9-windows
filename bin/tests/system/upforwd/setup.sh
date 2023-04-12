@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 cp -f ns1/example1.db ns1/example.db
-cp -f ns3/nomaster.db ns3/nomaster1.db
+cp -f ns3/noprimary.db ns3/noprimary1.db
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf

@@ -310,11 +310,12 @@ freestruct_doa(ARGS_FREESTRUCT) {
 
 static isc_result_t
 additionaldata_doa(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_doa);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_doa);
 
 	return (ISC_R_SUCCESS);
 }

@@ -13,7 +13,7 @@
 
 key rndc_key {
 	secret "1234abcd8765";
-	algorithm hmac-sha256;
+	algorithm @DEFAULT_HMAC@;
 };
 
 controls {
@@ -37,6 +37,6 @@ options {
 
 zone "." {
 	type secondary;
-	masters { 10.53.0.1; };
+	primaries { 10.53.0.1; };
 	file "root.bk";
 };

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_SRV_33_H
-#define IN_1_SRV_33_H 1
+#pragma once
 
 /*!
  *  \brief Per RFC2782 */
@@ -25,5 +24,3 @@ typedef struct dns_rdata_in_srv {
 	uint16_t port;
 	dns_name_t target;
 } dns_rdata_in_srv_t;
-
-#endif /* IN_1_SRV_33_H */

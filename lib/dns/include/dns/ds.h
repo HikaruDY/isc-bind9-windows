@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DS_H
-#define DNS_DS_H 1
+#pragma once
 
 #include <isc/lang.h>
 
@@ -64,5 +63,3 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DS_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef IN_1_SVCB_64_H
-#define IN_1_SVCB_64_H 1
+#pragma once
 
 /*!
  *  \brief Per draft-ietf-dnsop-svcb-https-02
@@ -36,5 +35,3 @@ dns_rdata_in_svcb_next(dns_rdata_in_svcb_t *);
 
 void
 dns_rdata_in_svcb_current(dns_rdata_in_svcb_t *, isc_region_t *);
-
-#endif /* IN_1_SVCB_64_H */

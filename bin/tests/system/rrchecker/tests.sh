@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -20,17 +19,17 @@ n=0
 n=`expr $n + 1`
 echo_i "class list ($n)"
 $RRCHECKER -C > classlist.out
-$DIFF classlist.out classlist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff classlist.out classlist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 n=`expr $n + 1`
 echo_i "type list ($n)"
 $RRCHECKER -T > typelist.out
-$DIFF typelist.out typelist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff typelist.out typelist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 n=`expr $n + 1`
 echo_i "private type list ($n)"
 $RRCHECKER -P > privatelist.out
-$DIFF privatelist.out privatelist.good || { echo_i "failed"; status=`expr $status + 1`; }
+diff privatelist.out privatelist.good || { echo_i "failed"; status=`expr $status + 1`; }
 
 myecho() {
 cat << EOF
@@ -41,7 +40,7 @@ EOF
 n=`expr $n + 1`
 echo_i "check conversions to canonical format ($n)"
 ret=0
-$SHELL ../genzone.sh 0 > tempzone
+$SHELL ${TOP_SRCDIR}/bin/tests/system/genzone.sh 0 > tempzone
 $CHECKZONE -Dq . tempzone | sed '/^;/d' > checkzone.out$n
 while read -r name tt cl ty rest
 do

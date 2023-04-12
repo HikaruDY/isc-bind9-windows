@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ROOTNS_H
-#define DNS_ROOTNS_H 1
+#pragma once
 
 /*! \file dns/rootns.h */
 
@@ -35,5 +34,3 @@ dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ROOTNS_H */

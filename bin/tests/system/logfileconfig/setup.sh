@@ -11,11 +11,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 $SHELL clean.sh
 
-copy_setports ns1/named.plain ns1/named.conf
-copy_setports ns1/rndc.conf.in ns1/rndc.conf
-copy_setports ns1/controls.conf.in ns1/controls.conf
+copy_setports ns1/named.plain.in ns1/named.conf

@@ -22,18 +22,16 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#ifdef OPENSSL_LEAKS
-#include <openssl/err.h>
-#endif /* ifdef OPENSSL_LEAKS */
+#include "timer_p.h"
 
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)      fprintf(stderr, "%s\n", (s))
@@ -96,13 +94,12 @@ struct isc_timermgr {
 };
 
 void
-isc_timermgr_poke(isc_timermgr_t *manager0);
+isc_timermgr_poke(isc_timermgr_t *manager);
 
-static isc_result_t
+static inline isc_result_t
 schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_timermgr_t *manager;
 	isc_time_t due;
-	int cmp;
 
 	/*!
 	 * Note: the caller must ensure locking.
@@ -146,7 +143,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 		/*
 		 * Already scheduled.
 		 */
-		cmp = isc_time_compare(&due, &timer->due);
+		int cmp = isc_time_compare(&due, &timer->due);
 		timer->due = due;
 		switch (cmp) {
 		case -1:
@@ -182,9 +179,8 @@ schedule(isc_timer_t *timer, isc_time_t *now, bool signal_ok) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
+static inline void
 deschedule(isc_timer_t *timer) {
-	bool need_wakeup = false;
 	isc_timermgr_t *manager;
 
 	/*
@@ -193,6 +189,7 @@ deschedule(isc_timer_t *timer) {
 
 	manager = timer->manager;
 	if (timer->index > 0) {
+		bool need_wakeup = false;
 		if (timer->index == 1) {
 			need_wakeup = true;
 		}
@@ -598,11 +595,9 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			if (need_schedule) {
 				result = schedule(timer, now, false);
 				if (result != ISC_R_SUCCESS) {
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "%s: %u",
-							 "couldn't schedule "
-							 "timer",
-							 result);
+					UNEXPECTED_ERROR(
+						"couldn't schedule timer: %s",
+						isc_result_totext(result));
 				}
 			}
 		} else {
@@ -613,10 +608,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 }
 
 static isc_threadresult_t
-#ifdef _WIN32 /* XXXDCL */
-	WINAPI
-#endif /* ifdef _WIN32 */
-	run(void *uap) {
+run(void *uap) {
 	isc_timermgr_t *manager = uap;
 	isc_time_t now;
 	isc_result_t result;
@@ -642,10 +634,6 @@ static isc_threadresult_t
 		XTRACE("wakeup");
 	}
 	UNLOCK(&manager->lock);
-
-#ifdef OPENSSL_LEAKS
-	ERR_remove_state(0);
-#endif /* ifdef OPENSSL_LEAKS */
 
 	return ((isc_threadresult_t)0);
 }
@@ -676,7 +664,7 @@ set_index(void *what, unsigned int index) {
 }
 
 isc_result_t
-isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
+isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
 
 	/*
@@ -714,7 +702,7 @@ isc_timermgr_poke(isc_timermgr_t *manager) {
 }
 
 void
-isc_timermgr_destroy(isc_timermgr_t **managerp) {
+isc__timermgr_destroy(isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
 
 	/*

@@ -154,7 +154,7 @@ tostruct_md(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	dns_name_fromregion(&name, &r);
 	dns_name_init(&md->md, NULL);
-	RETERR(name_duporclone(&name, mctx, &md->md));
+	name_duporclone(&name, mctx, &md->md);
 	md->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
@@ -182,11 +182,13 @@ additionaldata_md(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_md);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL));
 }
 
 static isc_result_t

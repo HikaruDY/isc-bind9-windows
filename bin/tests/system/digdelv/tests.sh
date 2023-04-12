@@ -12,8 +12,7 @@
 # information regarding copyright ownership.
 
 # shellcheck source=conf.sh
-SYSTEMTESTTOP=..
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 set -e
 
@@ -21,7 +20,7 @@ status=0
 n=0
 
 sendcmd() {
-    "$PERL" "$SYSTEMTESTTOP/send.pl" "${1}" "$EXTRAPORT1"
+    send "${1}" "$EXTRAPORT1"
 }
 
 dig_with_opts() {
@@ -65,7 +64,7 @@ KEYDATA="$(< ns2/keydata sed -e 's/+/[+]/g')"
 NOSPLIT="$(< ns2/keydata sed -e 's/+/[+]/g' -e 's/ //g')"
 
 HAS_PYYAML=0
-if [ -n "$PYTHON" ] ; then
+if [ -x "$PYTHON" ] ; then
 	$PYTHON -c "import yaml" 2> /dev/null && HAS_PYYAML=1
 fi
 
@@ -85,7 +84,7 @@ if [ -x "$NSLOOKUP" -a $checkupdate -eq 1 ] ; then
   n=$((n+1))
   echo_i "check nslookup handles UPDATE response ($n)"
   ret=0
-  "$NSLOOKUP" -q=CNAME "-port=$PORT" foo.bar 10.53.0.7 > nslookup.out.test$n 2>&1 && ret=1
+  "$NSLOOKUP" -q=CNAME -timeout=1 "-port=$PORT" foo.bar 10.53.0.7 > nslookup.out.test$n 2>&1 && ret=1
   grep "Opcode mismatch" nslookup.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -97,7 +96,7 @@ if [ -x "$HOST" -a $checkupdate -eq 1 ] ; then
   n=$((n+1))
   echo_i "check host handles UPDATE response ($n)"
   ret=0
-  "$HOST" -t CNAME -p $PORT foo.bar 10.53.0.7 > host.out.test$n 2>&1 && ret=1
+  "$HOST" -W 1 -t CNAME -p $PORT foo.bar 10.53.0.7 > host.out.test$n 2>&1 && ret=1
   grep "Opcode mismatch" host.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -129,7 +128,7 @@ if [ -x "$DIG" ] ; then
     n=$((n+1))
     echo_i "check dig handles UPDATE response ($n)"
     ret=0
-    dig_with_opts @10.53.0.7 cname foo.bar > dig.out.test$n 2>&1 && ret=1
+    dig_with_opts @10.53.0.7 +tries=1 +timeout=1 cname foo.bar > dig.out.test$n 2>&1 && ret=1
     grep "Opcode mismatch" dig.out.test$n > /dev/null || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -390,24 +389,11 @@ if [ -x "$DIG" ] ; then
   fi
 
   n=$((n+1))
-  echo_i "checking dig @IPv4addr -6 +mapped A a.example ($n)"
-  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null && [ "$(uname -s)" != "OpenBSD" ]
-  then
-    ret=0
-    dig_with_opts +tcp @10.53.0.2 -6 +mapped A a.example > dig.out.test$n 2>&1 || ret=1
-    grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null || ret=1
-    if [ $ret -ne 0 ]; then echo_i "failed"; fi
-    status=$((status+ret))
-  else
-    echo_i "IPv6 or IPv4-to-IPv6 mapping unavailable; skipping"
-  fi
-
-  n=$((n+1))
-  echo_i "checking dig +tcp @IPv4addr -6 +nomapped A a.example ($n)"
+  echo_i "checking dig +tcp @IPv4addr -6 A a.example ($n)"
   if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
-    dig_with_opts +tcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    dig_with_opts +tcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null && ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -416,11 +402,11 @@ if [ -x "$DIG" ] ; then
   fi
   n=$((n+1))
 
-  echo_i "checking dig +notcp @IPv4addr -6 +nomapped A a.example ($n)"
+  echo_i "checking dig +notcp @IPv4addr -6 A a.example ($n)"
   if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
-    dig_with_opts +notcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
+    dig_with_opts +notcp @10.53.0.2 -6 A a.example > dig.out.test$n 2>&1 || ret=1
     grep "SERVER: ::ffff:10.53.0.2#$PORT" < dig.out.test$n > /dev/null && ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -557,17 +543,6 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
-  echo_i "checking dig +dscp ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 +dscp=32 a a.example > /dev/null 2>&1 || ret=1
-  dig_with_opts @10.53.0.3 +dscp=-1 a a.example > /dev/null 2>&1 && ret=1
-  dig_with_opts @10.53.0.3 +dscp=64 a a.example > /dev/null 2>&1 && ret=1
-  #TODO add a check to make sure dig is actually setting the dscp on the query
-  #we might have to add better logging to named for this
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
   echo_i "checking dig +ednsopt with option number ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=3 a.example > dig.out.test$n 2>&1 || ret=1
@@ -590,7 +565,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=llq:0001000200001234567812345678fefefefe +qr a.example > dig.out.test$n 2>&1 || ret=1
   pat='LLQ: Version: 1, Opcode: 2, Error: 0, Identifier: 1311768465173141112, Lifetime: 4278124286$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -689,7 +664,7 @@ if [ -x "$DIG" ] ; then
   # First defined EDE code, additional text "foo".
   dig_with_opts @10.53.0.3 +ednsopt=ede:0000666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 0 (Other): (foo)$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -698,7 +673,7 @@ if [ -x "$DIG" ] ; then
   # Last defined EDE code, no additional text.
   dig_with_opts @10.53.0.3 +ednsopt=ede:0018 a.example +qr > dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 24 (Invalid Data)$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -707,7 +682,7 @@ if [ -x "$DIG" ] ; then
   # First undefined EDE code, additional text "foo".
   dig_with_opts @10.53.0.3 +ednsopt=ede:0019666f6f a.example +qr > dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 25: (foo)$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -716,7 +691,7 @@ if [ -x "$DIG" ] ; then
   # EDE payload is too short
   dig_with_opts @10.53.0.3 +ednsopt=ede a.example +qr > dig.out.test$n 2>&1 || ret=1
   pat='^; EDE:$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -725,7 +700,7 @@ if [ -x "$DIG" ] ; then
   # EDE payload is too short
   dig_with_opts @10.53.0.3 +ednsopt=ede:00 a.example +qr > dig.out.test$n 2>&1 || ret=1
   pat='^; EDE: 00 (".")$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -813,7 +788,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   dig_with_opts @10.53.0.3 -q -m > dig.out.test$n 2>&1
   pat='^;-m\..*IN.*A$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
@@ -927,7 +902,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   dig_with_opts @10.53.0.3 +short +expandaaaa AAAA ns2.example > dig.out.test$n 2>&1 || ret=1
   pat='^fd92:7065:0b8e:ffff:0000:0000:0000:0002$'
-  tr -d '\r' < dig.out.test$n | grep "$pat" > /dev/null || ret=1
+  grep "$pat" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -936,11 +911,14 @@ if [ -x "$DIG" ] ; then
     echo_i "check dig +yaml output ($n)"
     ret=0
     dig_with_opts +qr +yaml @10.53.0.3 any ns2.example > dig.out.test$n 2>&1 || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message query_message_data status || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 0 message query_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 1 message response_message_data status || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 1 message response_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 1 message response_message_data QUESTION_SECTION 0 || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 1 message response_message_data QUESTION_SECTION 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example. IN ANY" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -957,46 +935,10 @@ if [ -x "$DIG" ] ; then
   fi
 
   n=$((n+1))
-  echo_i "check that dig +unexpected works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +unexpected a a.example > dig.out.test$n || ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig +nounexpected works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +nounexpected +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig default for +[no]unexpected (+nounexpected) works ($n)"
-  ret=0
-  dig_with_opts @10.53.0.6 +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
-  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
-  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig +bufsize=0 disables EDNS ($n)"
+  echo_i "check that dig +bufsize=0 just sets the buffer size to 0 ($n)"
   ret=0
   dig_with_opts @10.53.0.3 a.example +bufsize=0 +qr > dig.out.test$n 2>&1 || ret=1
-  grep "EDNS:" dig.out.test$n > /dev/null && ret=1
-  if [ $ret -ne 0 ]; then echo_i "failed"; fi
-  status=$((status+ret))
-
-  n=$((n+1))
-  echo_i "check that dig +bufsize=0 +edns sends EDNS with bufsize of 0 ($n)"
-  ret=0
-  dig_with_opts @10.53.0.3 a.example +bufsize=0 +edns +qr > dig.out.test$n 2>&1 || ret=1
-  pat='EDNS:.* udp: 0$'
-  tr -d '\r' < dig.out.test$n | grep -E "$pat" > /dev/null || ret=1
+  grep "EDNS:" dig.out.test$n > /dev/null || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1004,10 +946,10 @@ if [ -x "$DIG" ] ; then
   echo_i "check that dig +bufsize restores default bufsize ($n)"
   ret=0
   dig_with_opts @10.53.0.3 a.example +bufsize=0 +bufsize +qr > dig.out.test$n 2>&1 || ret=1
+  lines=`grep "EDNS:.* udp:" dig.out.test$n | wc -l`
   lines1232=`grep "EDNS:.* udp: 1232" dig.out.test$n | wc -l`
-  lines4096=`grep "EDNS:.* udp: 4096" dig.out.test$n | wc -l`
-  test $lines1232 -eq 1 || ret=1
-  test $lines4096 -eq 1 || ret=1
+  test $lines -eq 2 || ret=1
+  test $lines1232 -eq 2 || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
@@ -1045,6 +987,116 @@ if [ -x "$DIG" ] ; then
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 
+  # See [GL #3020] for more information
+  n=$((n+1))
+  echo_i "check that dig handles UDP timeout followed by a SERVFAIL correctly ($n)"
+  # Ask ans8 to be in "unstable" mode (switching between "silent" and "servfail" modes)
+  echo "unstable" | sendcmd 10.53.0.8
+  ret=0
+  dig_with_opts +timeout=1 +nofail @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig handles TCP timeout followed by a SERVFAIL correctly ($n)"
+  # Ask ans8 to be in "unstable" mode (switching between "silent" and "servfail" modes)
+  echo "unstable" | sendcmd 10.53.0.8
+  ret=0
+  dig_with_opts +timeout=1 +nofail +tcp @10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a UDP socket network unreachable error ($n)"
+  ret=0
+  dig_with_opts @192.0.2.128 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" -e "host unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a TCP socket network unreachable error ($n)"
+  ret=0
+  dig_with_opts +tcp @192.0.2.128 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" -e "host unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a UDP socket read error ($n)"
+  ret=0
+  dig_with_opts @10.53.0.99 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a TCP socket read error ($n)"
+  # Ask ans8 to be in "close" mode, which closes the connection after accepting it
+  echo "close" | sendcmd 10.53.0.8
+  ret=0
+  dig_with_opts +tcp @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  # Note that we combine TCP socket "connection error" and "timeout" cases in
+  # one, because it is not trivial to simulate the timeout case in a system test
+  # in Linux without a firewall, but the code which handles error cases during
+  # the connection establishment time does not differentiate between timeout and
+  # other types of errors (unlike during reading), so this one check should be
+  # sufficient for both cases.
+  n=$((n+1))
+  echo_i "check that dig tries the next server after a TCP socket connection error/timeout ($n)"
+  ret=0
+  dig_with_opts +tcp @10.53.0.99 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  test $(grep -F -e "connection refused" -e "timed out" -e "network unreachable" dig.out.test$n | wc -l) -eq 3 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after UDP socket read timeouts ($n)"
+  # Ask ans8 to be in "silent" mode
+  echo "silent" | sendcmd 10.53.0.8
+  ret=0
+  dig_with_opts +timeout=1 @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig tries the next server after TCP socket read timeouts ($n)"
+  # Ask ans8 to be in "silent" mode
+  echo "silent" | sendcmd 10.53.0.8
+  ret=0
+  dig_with_opts +timeout=1 +tcp @10.53.0.8 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  # See [GL #3248] for more information
+  n=$((n+1))
+  echo_i "check that dig correctly refuses to use a server with a IPv4 mapped IPv6 address after failing with a regular IP address ($n)"
+  ret=0
+  dig_with_opts @10.53.0.8 @::ffff:10.53.0.8 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F ";; Skipping mapped address" dig.out.test$n > /dev/null || ret=1
+  grep -F ";; No acceptable nameservers" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  # See [GL #3244] for more information
+  n=$((n+1))
+  echo_i "check that dig handles printing query information with +qr and +y when multiple queries are involved (including a failed query) ($n)"
+  ret=0
+  dig_with_opts +timeout=1 +qr +y @127.0.0.1 @10.53.0.3 a.example > dig.out.test$n 2>&1 || ret=1
+  grep -F "IN A 10.0.0.1" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
@@ -1078,10 +1130,12 @@ if [ -x "$MDIG" ] ; then
     n=$((n+1))
     echo_i "check mdig +yaml output ($n)"
     ret=0
-    mdig_with_opts +yaml @10.53.0.3 -t any ns2.example > dig.out.test$n || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message response_message_data status || ret=1)
+    mdig_with_opts +yaml @10.53.0.3 -t any ns2.example > dig.out.test$n 2>&1 || ret=1
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "NOERROR" ] || ret=1
-    value=$($PYTHON yamlget.py dig.out.test$n 0 message response_message_data QUESTION_SECTION 0 || ret=1)
+    $PYTHON yamlget.py dig.out.test$n 0 message response_message_data QUESTION_SECTION 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example. IN ANY" ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
@@ -1329,11 +1383,14 @@ if [ -x "$DELV" ] ; then
     echo_i "check delv +yaml output ($n)"
     ret=0
     delv_with_opts +yaml @10.53.0.3 any ns2.example > delv.out.test$n || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n status || ret=1)
+    $PYTHON yamlget.py delv.out.test$n status > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "success" ] || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n query_name || ret=1)
+    $PYTHON yamlget.py delv.out.test$n query_name > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     [ "$value" = "ns2.example" ] || ret=1
-    value=$($PYTHON yamlget.py delv.out.test$n records 0 answer_not_validated 0 || ret=1)
+    $PYTHON yamlget.py delv.out.test$n records 0 answer_not_validated 0 > yamlget.out.test$n 2>&1 || ret=1
+    read -r value < yamlget.out.test$n
     count=$(echo $value | wc -w )
     [ ${count:-0} -eq 5 ] || ret=1
     if [ $ret -ne 0 ]; then echo_i "failed"; fi

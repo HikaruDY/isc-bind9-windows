@@ -13,8 +13,7 @@
 
 /*! \file */
 
-#ifndef RNDC_OS_H
-#define RNDC_OS_H 1
+#pragma once
 
 #include <stdio.h>
 
@@ -32,5 +31,3 @@ set_user(FILE *fd, const char *user);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ifndef RNDC_OS_H */

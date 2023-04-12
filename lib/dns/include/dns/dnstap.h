@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef _DNSTAP_H
-#define _DNSTAP_H
+#pragma once
 
 /*****
 ***** Module Info
@@ -392,5 +391,3 @@ dns_dt_close(dns_dthandle_t **handlep);
  *
  *\li	'*handlep' is not NULL
  */
-
-#endif /* _DNSTAP_H */

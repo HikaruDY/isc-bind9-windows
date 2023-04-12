@@ -155,7 +155,7 @@ tostruct_dname(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&dname->dname, NULL);
-	RETERR(name_duporclone(&name, mctx, &dname->dname));
+	name_duporclone(&name, mctx, &dname->dname);
 	dname->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
@@ -177,11 +177,12 @@ freestruct_dname(ARGS_FREESTRUCT) {
 
 static isc_result_t
 additionaldata_dname(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_dname);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_dname);
 
 	return (ISC_R_SUCCESS);
 }

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_NSEC3_50_H
-#define GENERIC_NSEC3_50_H 1
+#pragma once
 
 /*!
  * \brief Per RFC 5155 */
@@ -108,5 +107,3 @@ typedef struct dns_rdata_nsec3 {
  * nameservers.
  */
 #define DNS_NSEC3FLAG_NONSEC 0x10U
-
-#endif /* GENERIC_NSEC3_50_H */

@@ -21,10 +21,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#ifdef _WIN32
-#include <Winsock2.h>
-#endif /* ifdef _WIN32 */
-
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -33,10 +29,11 @@
 #include <isc/heap.h>
 #include <isc/list.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/time.h>
+#include <isc/tm.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -53,7 +50,6 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/time.h>
 
@@ -69,7 +65,7 @@ static const char *keystates[KEYSTATES_NVALUES] = {
 
 int verbose = 0;
 bool quiet = false;
-uint8_t dtype[8];
+dns_dsdigest_t dtype[8];
 
 static fatalcallback_t *fatalcallback = NULL;
 
@@ -114,7 +110,7 @@ vbprintf(int level, const char *fmt, ...) {
 
 void
 version(const char *name) {
-	fprintf(stderr, "%s %s\n", name, VERSION);
+	fprintf(stderr, "%s %s\n", name, PACKAGE_VERSION);
 	exit(0);
 }
 
@@ -245,7 +241,8 @@ time_units(isc_stdtime_t offset, char *suffix, const char *str) {
 static bool
 isnone(const char *str) {
 	return ((strcasecmp(str, "none") == 0) ||
-		(strcasecmp(str, "never") == 0));
+		(strcasecmp(str, "never") == 0) ||
+		(strcasecmp(str, "unset") == 0));
 }
 
 dns_ttl_t
@@ -288,6 +285,7 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	const char *orig = str;
 	char *endp;
 	size_t n;
+	struct tm tm;
 
 	if (isnone(str)) {
 		if (setp != NULL) {
@@ -309,6 +307,8 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 	 *   now([+-]offset)
 	 *   YYYYMMDD([+-]offset)
 	 *   YYYYMMDDhhmmss([+-]offset)
+	 *   Day Mon DD HH:MM:SS YYYY([+-]offset)
+	 *   1234567890([+-]offset)
 	 *   [+-]offset
 	 */
 	n = strspn(str, "0123456789");
@@ -329,9 +329,22 @@ strtotime(const char *str, int64_t now, int64_t base, bool *setp) {
 		}
 		base = val;
 		str += n;
+	} else if (n == 10u &&
+		   (str[n] == '\0' || str[n] == '-' || str[n] == '+'))
+	{
+		base = strtoll(str, &endp, 0);
+		str += 10;
 	} else if (strncmp(str, "now", 3) == 0) {
 		base = now;
 		str += 3;
+	} else if (str[0] >= 'A' && str[0] <= 'Z') {
+		/* parse ctime() format as written by `dnssec-settime -p` */
+		endp = isc_tm_strptime(str, "%a %b %d %H:%M:%S %Y", &tm);
+		if (endp != str + 24) {
+			fatal("time value %s is invalid", orig);
+		}
+		base = mktime(&tm);
+		str += 24;
 	}
 
 	if (str[0] == '\0') {
@@ -570,25 +583,3 @@ isoptarg(const char *arg, char **argv, void (*usage)(void)) {
 	}
 	return (false);
 }
-
-#ifdef _WIN32
-void
-InitSockets(void) {
-	WORD wVersionRequested;
-	WSADATA wsaData;
-	int err;
-
-	wVersionRequested = MAKEWORD(2, 0);
-
-	err = WSAStartup(wVersionRequested, &wsaData);
-	if (err != 0) {
-		fprintf(stderr, "WSAStartup() failed: %d\n", err);
-		exit(1);
-	}
-}
-
-void
-DestroySockets(void) {
-	WSACleanup();
-}
-#endif /* ifdef _WIN32 */
