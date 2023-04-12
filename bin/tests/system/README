@@ -15,8 +15,7 @@ This directory holds a simple test environment for running bind9 system tests
 involving multiple name servers.
 
 With the exception of "common" (which holds configuration information common to
-multiple tests) and "win32" (which holds files needed to run the tests in a
-Windows environment), each directory holds a set of scripts and configuration
+multiple tests), each directory holds a set of scripts and configuration
 files to test different parts of BIND.  The directories are named for the
 aspect of BIND they test, for example:
 
@@ -195,7 +194,7 @@ structure:
 
 e.g.
 
-    I:catz:checking that dom1.example is not served by master (1)
+    I:catz:checking that dom1.example is not served by primary (1)
 
 The meanings of the fields are as follows:
 
@@ -378,12 +377,10 @@ a run of the full test suite (e.g. the tests are started with "runall.sh").
 
 3.  Each script should start with the following lines:
 
-    SYSTEMTESTTOP=..
-    . $SYSTEMTESTTOP/conf.sh
+    . ../conf.sh
 
 "conf.sh" defines a series of environment variables together with functions
-useful for the test scripts. (conf.sh.win32 is the Windows equivalent of this
-file.)
+useful for the test scripts.
 
 
 prereq.sh
@@ -556,7 +553,7 @@ By default, start.pl starts a "named" server with the following options:
     -g              Runs the server in the foreground and logs everything to
                     stderr.
 
-    -m record,size,mctx
+    -m record
                     Turns on these memory usage debugging flags.
 
     -U 4            Uses four listeners.
@@ -650,10 +647,6 @@ Once a test has been created, the following files should be edited:
 SEQUENTIALDIRS variables as appropriate.  The former is used for tests that
 can run in parallel with other tests, the latter for tests that are unable to
 do so.
-
-* conf.sh.win32 This is the Windows equivalent of conf.sh.in.  The name of the
-test should be added to the PARALLELDIRS or SEQUENTIALDIRS variables as
-appropriate.
 
 * Makefile.in The name of the test should be added to one of the the PARALLEL
 or SEQUENTIAL variables.

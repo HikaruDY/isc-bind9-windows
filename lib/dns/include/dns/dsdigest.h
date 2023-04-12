@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_DSDIGEST_H
-#define DNS_DSDIGEST_H 1
+#pragma once
 
 /*! \file dns/dsdigest.h */
 
@@ -68,5 +67,3 @@ dns_dsdigest_format(dns_dsdigest_t typ, char *cp, unsigned int size);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_DSDIGEST_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_NETADDR_H
-#define ISC_NETADDR_H 1
+#pragma once
 
 /*! \file isc/netaddr.h */
 
@@ -23,10 +22,8 @@
 #include <isc/net.h>
 #include <isc/types.h>
 
-#ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/types.h>
 #include <sys/un.h>
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 
 ISC_LANG_BEGINDECLS
 
@@ -39,11 +36,14 @@ struct isc_netaddr {
 	union {
 		struct in_addr	in;
 		struct in6_addr in6;
-#ifdef ISC_PLATFORM_HAVESYSUNH
-		char un[sizeof(((struct sockaddr_un *)0)->sun_path)];
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+		char		un[sizeof(((struct sockaddr_un *)0)->sun_path)];
 	} type;
 	uint32_t zone;
+};
+
+struct isc_netprefix {
+	isc_netaddr_t addr;
+	unsigned int  prefixlen;
 };
 
 bool
@@ -195,5 +195,3 @@ isc_netaddr_isloopback(const isc_netaddr_t *na);
  * 127.0.0.0/8 or ::1).
  */
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_NETADDR_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_IPTABLE_H
-#define DNS_IPTABLE_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -66,5 +65,3 @@ void
 dns_iptable_detach(dns_iptable_t **tabp);
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_IPTABLE_H */

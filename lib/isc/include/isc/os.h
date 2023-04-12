@@ -11,14 +11,21 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_OS_H
-#define ISC_OS_H 1
+#pragma once
 
 /*! \file isc/os.h */
 
 #include <isc/lang.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
+
+/*%<
+ * Hardcode the L1 cacheline size of the CPU to 64, this is checked in
+ * the os.c library constructor if operating system provide means to
+ * get the L1 cacheline size using sysconf().
+ */
+#define ISC_OS_CACHELINE_SIZE 64
 
 unsigned int
 isc_os_ncpus(void);
@@ -27,6 +34,12 @@ isc_os_ncpus(void);
  * be determined.
  */
 
-ISC_LANG_ENDDECLS
+unsigned long
+isc_os_cacheline(void);
+/*%<
+ * Return L1 caheline size of the CPU.
+ * If L1 cache is greater than ISC_OS_CACHELINE_SIZE, ensure it is used
+ * instead of constant. Is common on ppc64le architecture.
+ */
 
-#endif /* ISC_OS_H */
+ISC_LANG_ENDDECLS

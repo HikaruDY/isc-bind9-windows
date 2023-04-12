@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NAMED_ZONECONF_H
-#define NAMED_ZONECONF_H 1
+#pragma once
 
 /*! \file */
 
@@ -75,5 +74,3 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase, dns_zone_t *zone,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* NAMED_ZONECONF_H */

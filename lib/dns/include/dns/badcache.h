@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_BADCACHE_H
-#define DNS_BADCACHE_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -148,5 +147,3 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_BADCACHE_H */

@@ -105,8 +105,9 @@ static isc_result_t additionaldata_ #(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_proforma.c #);
 	REQUIRE(rdata->rdclass == #);
 
-	(void)add;
-	(void)arg;
+	UNUSED(owner);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=.
 infile=root.db.in
@@ -20,8 +19,8 @@ zonefile=root.db
 
 (cd ../ns2 && $SHELL -e sign.sh )
 
-cp ../ns2/dsset-example$TP .
-cp ../ns2/dsset-example.com$TP .
+cp ../ns2/dsset-example. .
+cp ../ns2/dsset-example.com. .
 
 keyname1=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -n zone $zone)
 keyname2=$($KEYGEN -q -a ${DEFAULT_ALGORITHM} -f KSK -n zone $zone)

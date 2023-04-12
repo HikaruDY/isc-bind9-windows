@@ -17,6 +17,12 @@
 
 #include <isc/string.h>
 
+/***
+ *** Default strerror_r buffer size
+ ***/
+
+#define ISC_STRERRORSIZE 128
+
 #if defined(strerror_r)
 #undef strerror_r
 #endif /* if defined(strerror_r) */

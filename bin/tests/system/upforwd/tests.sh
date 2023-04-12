@@ -15,8 +15,7 @@
 # ns2 = secondary with update forwarding disabled; not currently used
 # ns3 = secondary with update forwarding enabled
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
@@ -200,13 +199,13 @@ do
 $NSUPDATE -- - <<EOF 
 local 10.53.0.1
 server 10.53.0.3 ${PORT}
-zone nomaster
-update add unsigned.nomaster. 600 A 10.10.10.1
-update add unsigned.nomaster. 600 TXT Foo
+zone noprimary
+update add unsigned.noprimary. 600 A 10.10.10.1
+update add unsigned.noprimary. 600 TXT Foo
 send
 EOF
 ) > /dev/null 2>&1 &
-	$DIG -p ${PORT} +noadd +notcp +noauth nomaster. @10.53.0.3 soa > dig.out.ns3 || ret=1
+	$DIG -p ${PORT} +noadd +notcp +noauth noprimary. @10.53.0.3 soa > dig.out.ns3 || ret=1
 	grep "status: NOERROR" dig.out.ns3 > /dev/null || ret=1
 	count=`expr $count + 1`
 done

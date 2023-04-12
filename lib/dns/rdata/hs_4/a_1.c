@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef RDATA_HS_4_A_1_C
-#define RDATA_HS_4_A_1_C
+#pragma once
 
 #include <isc/net.h>
 
@@ -184,6 +183,7 @@ additionaldata_hs_a(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_hs);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 
@@ -231,5 +231,3 @@ static int
 casecompare_hs_a(ARGS_COMPARE) {
 	return (compare_hs_a(rdata1, rdata2));
 }
-
-#endif /* RDATA_HS_4_A_1_C */

@@ -25,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -36,7 +37,6 @@
 #include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
-#include <dns/lib.h>
 #include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
@@ -46,7 +46,6 @@
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 #include <dns/time.h>
 #include <dns/ttl.h>
 
@@ -107,7 +106,7 @@ typedef struct dns_totext_ctx {
 	dns_indent_t indent;
 } dns_totext_ctx_t;
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_keyzone = {
+const dns_master_style_t dns_master_style_keyzone = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_OMIT_TTL | DNS_STYLEFLAG_TTL |
@@ -122,7 +121,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_keyzone = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_default = {
+const dns_master_style_t dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_OMIT_TTL | DNS_STYLEFLAG_TTL |
@@ -137,7 +136,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_default = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_full = {
+const dns_master_style_t dns_master_style_full = {
 	DNS_STYLEFLAG_COMMENT | DNS_STYLEFLAG_RESIGN,
 	46,
 	46,
@@ -148,7 +147,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_full = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_explicitttl = {
+const dns_master_style_t dns_master_style_explicitttl = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_REL_DATA |
 		DNS_STYLEFLAG_COMMENT | DNS_STYLEFLAG_RRCOMMENT |
@@ -162,7 +161,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_explicitttl = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_cache = {
+const dns_master_style_t dns_master_style_cache = {
 	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
 		DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
 		DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE,
@@ -175,36 +174,34 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_cache = {
 	UINT_MAX
 };
 
-LIBDNS_EXTERNAL_DATA const dns_master_style_t
-	dns_master_style_cache_with_expired = {
-		DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
-			DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
-			DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE |
-			DNS_STYLEFLAG_EXPIRED,
-		24,
-		32,
-		32,
-		40,
-		80,
-		8,
-		UINT_MAX
-	};
-
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_simple = {
-	0, 24, 32, 32, 40, 80, 8, UINT_MAX
+const dns_master_style_t dns_master_style_cache_with_expired = {
+	DNS_STYLEFLAG_OMIT_OWNER | DNS_STYLEFLAG_OMIT_CLASS |
+		DNS_STYLEFLAG_MULTILINE | DNS_STYLEFLAG_RRCOMMENT |
+		DNS_STYLEFLAG_TRUST | DNS_STYLEFLAG_NCACHE |
+		DNS_STYLEFLAG_EXPIRED,
+	24,
+	32,
+	32,
+	40,
+	80,
+	8,
+	UINT_MAX
 };
+
+const dns_master_style_t dns_master_style_simple = { 0,	 24, 32, 32,
+						     40, 80, 8,	 UINT_MAX };
 
 /*%
  * A style suitable for dns_rdataset_totext().
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_debug = {
+const dns_master_style_t dns_master_style_debug = {
 	DNS_STYLEFLAG_REL_OWNER, 24, 32, 40, 48, 80, 8, UINT_MAX
 };
 
 /*%
  * Similar, but indented (i.e., prepended with indentctx.string).
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_indent = {
+const dns_master_style_t dns_master_style_indent = {
 	DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_INDENT,
 	24,
 	32,
@@ -218,7 +215,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_indent = {
 /*%
  * Similar, but with each line commented out.
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_comment = {
+const dns_master_style_t dns_master_style_comment = {
 	DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_MULTILINE |
 		DNS_STYLEFLAG_RRCOMMENT | DNS_STYLEFLAG_COMMENTDATA,
 	24,
@@ -233,7 +230,7 @@ LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_comment = {
 /*%
  * YAML style
  */
-LIBDNS_EXTERNAL_DATA const dns_master_style_t dns_master_style_yaml = {
+const dns_master_style_t dns_master_style_yaml = {
 	DNS_STYLEFLAG_YAML | DNS_STYLEFLAG_REL_OWNER | DNS_STYLEFLAG_INDENT,
 	24,
 	32,
@@ -573,7 +570,7 @@ rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 	if (owner_name != NULL) {
 		name = dns_fixedname_initname(&fixed);
-		dns_name_copynf(owner_name, name);
+		dns_name_copy(owner_name, name);
 		dns_rdataset_getownercase(rdataset, name);
 	}
 
@@ -862,8 +859,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(&dns_master_style_debug, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -895,8 +891,7 @@ dns_master_rdatasettotext(const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(style, indent, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -912,8 +907,7 @@ dns_master_questiontotext(const dns_name_t *owner_name,
 	isc_result_t result;
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -989,8 +983,7 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name, dns_rdataset_t *rdataset,
 	result = isc_stdio_write(r.base, 1, (size_t)r.length, f, NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "master file write failed: %s",
+		UNEXPECTED_ERROR("master file write failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -1274,8 +1267,7 @@ restart:
 	result = isc_stdio_write(r.base, 1, (size_t)r.length, f, NULL);
 
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "raw master file write failed: %s",
+		UNEXPECTED_ERROR("raw master file write failed: %s",
 				 isc_result_totext(result));
 		return (result);
 	}
@@ -1293,7 +1285,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 	dns_name_t *name;
 
 	name = dns_fixedname_initname(&fixed);
-	dns_name_copynf(owner_name, name);
+	dns_name_copy(owner_name, name);
 	for (result = dns_rdatasetiter_first(rdsiter); result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter))
 	{
@@ -1321,20 +1313,6 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 	}
 
 	return (result);
-}
-
-static isc_result_t
-dump_rdatasets_map(isc_mem_t *mctx, const dns_name_t *name,
-		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
-		   isc_buffer_t *buffer, FILE *f) {
-	UNUSED(mctx);
-	UNUSED(name);
-	UNUSED(rdsiter);
-	UNUSED(ctx);
-	UNUSED(buffer);
-	UNUSED(f);
-
-	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /*
@@ -1602,17 +1580,13 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	case dns_masterformat_raw:
 		dctx->dumpsets = dump_rdatasets_raw;
 		break;
-	case dns_masterformat_map:
-		dctx->dumpsets = dump_rdatasets_map;
-		break;
 	default:
 		UNREACHABLE();
 	}
 
 	result = totext_ctx_init(style, NULL, &dctx->tctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		goto cleanup;
 	}
 
@@ -1696,7 +1670,6 @@ writeheader(dns_dumpctx_t *dctx) {
 		}
 		break;
 	case dns_masterformat_raw:
-	case dns_masterformat_map:
 		r.base = (unsigned char *)&rawheader;
 		r.length = sizeof(rawheader);
 		isc_buffer_region(&buffer, &r);
@@ -1754,17 +1727,6 @@ dumptostream(dns_dumpctx_t *dctx) {
 	name = dns_fixedname_initname(&fixname);
 
 	CHECK(writeheader(dctx));
-
-	/*
-	 * Fast format is not currently written incrementally,
-	 * so we make the call to dns_db_serialize() here.
-	 * If the database is anything other than an rbtdb,
-	 * this should result in not implemented
-	 */
-	if (dctx->format == dns_masterformat_map) {
-		result = dns_db_serialize(dctx->db, dctx->version, dctx->f);
-		goto cleanup;
-	}
 
 	result = dns_dbiterator_first(dctx->dbiter);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
@@ -2025,8 +1987,7 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 
 	result = totext_ctx_init(style, NULL, &ctx);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "could not set master file style");
+		UNEXPECTED_ERROR("could not set master file style");
 		return (ISC_R_UNEXPECTED);
 	}
 

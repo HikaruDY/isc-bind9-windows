@@ -55,7 +55,7 @@ main(int argc, char **argv) {
 	length = 0;
 
 	if (argc != 2) {
-		fputs(USAGE, stderr);
+		fprintf(stderr, USAGE);
 		goto out;
 	}
 

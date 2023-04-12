@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_RATELIMITER_H
-#define ISC_RATELIMITER_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -144,5 +143,3 @@ isc_ratelimiter_release(isc_ratelimiter_t *rl);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_RATELIMITER_H */

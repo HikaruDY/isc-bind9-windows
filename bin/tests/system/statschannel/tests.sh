@@ -11,12 +11,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 # shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+. ../conf.sh
 
 DIGCMD="$DIG @10.53.0.2 -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 if ! $FEATURETEST --have-json-c
 then
@@ -42,7 +41,7 @@ else
     echo_i "XML tests require XML::Simple; skipping" >&2
 fi
 
-if [ ! "$PERL_JSON" -a ! "$PERL_XML" ]; then
+if [ ! "$PERL_JSON" ] && [ ! "$PERL_XML" ]; then
     echo_i "skipping all tests"
     exit 0
 fi
@@ -111,8 +110,8 @@ if [ $PERL_JSON ]; then
     [ "$noerror_count" -eq "$json_noerror_count" ] || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking malloced memory statistics xml/json ($n)"
@@ -132,53 +131,57 @@ if [ $PERL_JSON ]; then
     grep '"Malloced":[0-9][0-9]*,' json.mem > /dev/null || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "checking consistency between regular and compressed output ($n)"
-for i in 1 2 3 4 5; do
-	ret=0
-	if $FEATURETEST --have-libxml2;
-	then
-		URL=http://10.53.0.2:${EXTRAPORT1}/xml/v3/server
-		filter_str='s#<current-time>.*</current-time>##g'
-	else
-		URL=http://10.53.0.2:${EXTRAPORT1}/json/v1/server
-		filter_str='s#"current-time.*",##g'
-	fi
-	$CURL -D regular.headers $URL 2>/dev/null | \
-		sed -e "$filter_str" > regular.out
-	$CURL -D compressed.headers --compressed $URL 2>/dev/null | \
-		sed -e "$filter_str" > compressed.out
-	diff regular.out compressed.out >/dev/null || ret=1
-	if [ $ret != 0 ]; then
-		echo_i "failed on try $i, probably a timing issue, trying again"
-		sleep 1
-	else
-		break
-	fi
-done
-
-status=`expr $status + $ret`
-n=`expr $n + 1`
+ret=0
+if [ -x "${CURL}" ] ; then
+    for i in 1 2 3 4 5; do
+        ret=0
+        if $FEATURETEST --have-libxml2;
+        then
+            URL="http://10.53.0.2:${EXTRAPORT1}/xml/v3/server"
+            filter_str='s#<current-time>.*</current-time>##g'
+        else
+            URL="http://10.53.0.2:${EXTRAPORT1}/json/v1/server"
+            filter_str='s#"current-time.*",##g'
+        fi
+        "${CURL}" -D regular.headers "$URL" 2>/dev/null | \
+            sed -e "$filter_str" > regular.out || ret=1
+        "${CURL}" -D compressed.headers --compressed "$URL" 2>/dev/null | \
+            sed -e "$filter_str" > compressed.out || ret=1
+        diff regular.out compressed.out >/dev/null || ret=1
+        if [ $ret != 0 ]; then
+            echo_i "failed on try $i, probably a timing issue, trying again"
+            sleep 1
+        else
+            break
+        fi
+    done
+else
+    echo_i "skipping test as curl not found"
+fi
+status=$((status + ret))
+n=$((n + 1))
 
 ret=0
 echo_i "checking if compressed output is really compressed ($n)"
 if $FEATURETEST --with-zlib;
 then
     REGSIZE=`cat regular.headers | \
-	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
     COMPSIZE=`cat compressed.headers | \
-	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
-    if [ ! `expr $REGSIZE / $COMPSIZE` -gt 2 ]; then
-	ret=1
+        grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
+    if [ ! $((REGSIZE / COMPSIZE)) -gt 2 ]; then
+        ret=1
     fi
 else
     echo_i "skipped"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test dnssec sign statistics.
 zone="dnssec"
@@ -209,8 +212,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dynamic update.
 ret=0
@@ -239,8 +242,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations of KSK.
 ret=0
@@ -266,8 +269,8 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations for scheduled resigning (many keys).
 ret=0
@@ -278,7 +281,6 @@ ksk13_id=`cat ns2/$zone.ksk13.id`
 zsk13_id=`cat ns2/$zone.zsk13.id`
 ksk14_id=`cat ns2/$zone.ksk14.id`
 zsk14_id=`cat ns2/$zone.zsk14.id`
-num_ids=$( (echo $ksk8_id; echo $zsk8_id; echo $ksk13_id; echo $zsk13_id; echo $ksk14_id; echo $zsk14_id;) | sort -u | wc -l)
 # The dnssec zone has 10 RRsets to sign (including NSEC) with the ZSKs and one
 # RRset (DNSKEY) with the KSKs. So starting named with signatures that expire
 # almost right away, this should trigger 10 zsk and 1 ksk sign operations per
@@ -299,22 +301,17 @@ cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone '$zone' stats data after zone maintenance at startup ($n)"
-if test $num_ids -eq 6
-then
-    if [ $PERL_XML ]; then
-        getzones xml $zone x$n || ret=1
-        cmp zones.out.x$n zones.expect.$n || ret=1
-    fi
-    if [ $PERL_JSON ]; then
-        getzones json 2 j$n || ret=1
-        cmp zones.out.j$n zones.expect.$n || ret=1
-    fi
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-else
-    echo_i "skipped: duplicate key id detected (fixed in BIND 9.19)"
+if [ $PERL_XML ]; then
+    getzones xml $zone x$n || ret=1
+    cmp zones.out.x$n zones.expect.$n || ret=1
 fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+if [ $PERL_JSON ]; then
+    getzones json 2 j$n || ret=1
+    cmp zones.out.j$n zones.expect.$n || ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dynamic update (many keys).
 ret=0
@@ -342,22 +339,17 @@ cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
 echo_i "fetching zone '$zone' stats data after dynamic update ($n)"
-if test $num_ids -eq 6
-then
-    if [ $PERL_XML ]; then
-        getzones xml $zone x$n || ret=1
-        cmp zones.out.x$n zones.expect.$n || ret=1
-    fi
-    if [ $PERL_JSON ]; then
-        getzones json 2 j$n || ret=1
-        cmp zones.out.j$n zones.expect.$n || ret=1
-    fi
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-else
-    echo_i "skipped: duplicate key id detected (fixed in BIND 9.19)"
+if [ $PERL_XML ]; then
+    getzones xml $zone x$n || ret=1
+    cmp zones.out.x$n zones.expect.$n || ret=1
 fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+if [ $PERL_JSON ]; then
+    getzones json 2 j$n || ret=1
+    cmp zones.out.j$n zones.expect.$n || ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
 
 # Test sign operations after dnssec-policy change (removing keys).
 ret=0
@@ -385,8 +377,126 @@ if [ $PERL_JSON ]; then
     cmp zones.out.j$n zones.expect.$n || ret=1
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-n=`expr $n + 1`
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check HTTP/1.1 client-side pipelined requests are handled (GET) ($n)"
+ret=0
+if [ -x "${NC}" ] ; then
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+
+GET /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Connection: close
+
+EOF
+    lines=$(grep -c "^<statistics version" nc.out$n)
+    test "$lines" = 2 || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check HTTP/1.1 client-side pipelined requests are handled (POST) ($n)"
+ret=0
+if [ -x "${NC}" ]; then
+    "${NC}" 10.53.0.3 "${EXTRAPORT1}" << EOF > nc.out$n || ret=1
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+
+{}
+POST /xml/v3/status HTTP/1.1
+Host: 10.53.0.3:${EXTRAPORT1}
+Content-Type: application/json
+Content-Length: 3
+Connection: close
+
+{}
+EOF
+    lines=$(grep -c "^<statistics version" nc.out$n)
+    test "$lines" = 2 || ret=1
+else
+    echo_i "skipping test as nc not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+if [ -x "${CURL}" ] && ! ("${CURL}" --next 2>&1 | grep 'option --next: is unknown'); then
+    CURL_NEXT="${CURL}"
+fi
+
+echo_i "Check HTTP with more than 100 headers ($n)"
+ret=0
+i=0
+if [ -x "${CURL_NEXT}" ] ; then
+    # build input stream.
+    : > header.in$n
+    while test $i -lt 101
+    do
+        printf 'X-Bloat%d: VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==\r\n' $i >> header.in$n
+        i=$((i+1))
+    done
+    printf '\r\n' >> header.in$n
+
+    # send the requests then wait for named to close the socket.
+    URL="http://10.53.0.3:${EXTRAPORT1}/xml/v3/status"
+    "${CURL}" --silent --include --get "$URL" --next --get --header @header.in$n "$URL" > curl.out$n && ret=1
+    # we expect 1 request to be processed.
+    lines=$(grep -c "^<statistics version" curl.out$n)
+    test "$lines" = 1 || ret=1
+else
+    echo_i "skipping test as curl with --next support not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check HTTP/1.1 keep-alive with truncated stream ($n)"
+ret=0
+i=0
+if [ -x "${CURL_NEXT}" ] ; then
+    # build input stream.
+    printf 'X-Bloat: ' > header.in$n
+    while test $i -lt 5000
+    do
+        printf '%s' "VGhlIG1vc3QgY29tbW9uIHJlYXNvbiBmb3IgYmxvYXRpbmcgaXMgaGF2aW5nIGEgbG90IG9mIGdhcyBpbiB5b3VyIGd1dC4gCg==" >> header.in$n
+        i=$((i+1))
+    done
+    printf '\r\n' >> header.in$n
+
+    # send the requests then wait for named to close the socket.
+    URL="http://10.53.0.3:${EXTRAPORT1}/xml/v3/status"
+    "${CURL}" --silent --include --get "$URL" --next --get --header @header.in$n "$URL" > curl.out$n && ret=1
+    # we expect 1 request to be processed.
+    lines=$(grep -c "^<statistics version" curl.out$n)
+    test "$lines" = 1 || ret=1
+else
+    echo_i "skipping test as curl with --next support not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
+
+echo_i "Check that consequtive responses do not grow excessively ($n)"
+ret=0
+i=0
+if [ -x "${CURL}" ] ; then
+    URL="http://10.53.0.3:${EXTRAPORT1}/json/v1"
+    "${CURL}" --silent --include --header "Accept-Encoding: deflate, gzip, br, zstd" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" "$URL" > curl.out$n || ret=1
+    grep -a Content-Length curl.out$n | awk 'BEGIN { prev=0; } { if (prev != 0 && $2 - prev > 100) { exit(1); } prev = $2; }' || ret=1
+else
+    echo_i "skipping test as curl not found"
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=$((status + ret))
+n=$((n + 1))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

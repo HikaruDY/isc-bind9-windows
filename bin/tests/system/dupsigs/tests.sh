@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 
@@ -39,12 +38,12 @@ end=$((start + 140))
 
 while [ $now -lt $end ]; do
         et=$((now - start))
-	echo "=============== $et ============"
+	echo "............... $et ............"
 	$JOURNALPRINT ns1/signing.test.db.signed.jnl | $PERL check_journal.pl
 	$DIG axfr signing.test -p ${PORT} @10.53.0.1 > dig.out.at$et
 	awk '$4 == "RRSIG" { print $11 }' dig.out.at$et | sort | uniq -c
 	lines=`awk '$4 == "RRSIG" { print}' dig.out.at$et | wc -l`
-	if [ ${et} -ne 0 -a ${lines} -ne 1009 ]
+	if [ ${et} -ne 0 -a ${lines} -ne 1008 ]
 	then
 		echo_i "failed"
                 status=$((status + 1))

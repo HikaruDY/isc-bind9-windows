@@ -18,6 +18,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/rwlock.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/util.h>
@@ -30,7 +31,6 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 
 #define KEYTABLE_MAGIC	   ISC_MAGIC('K', 'T', 'b', 'l')
 #define VALID_KEYTABLE(kt) ISC_MAGIC_VALID(kt, KEYTABLE_MAGIC)
@@ -367,7 +367,8 @@ new_keynode(dns_rdata_ds_t *ds, dns_keytable_t *keytable, bool managed,
  */
 static isc_result_t
 insert(dns_keytable_t *keytable, bool managed, bool initial,
-       const dns_name_t *keyname, dns_rdata_ds_t *ds) {
+       const dns_name_t *keyname, dns_rdata_ds_t *ds,
+       dns_keytable_callback_t callback, void *callback_arg) {
 	dns_rbtnode_t *node = NULL;
 	isc_result_t result;
 
@@ -384,6 +385,9 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 		 * and attach it to the created node.
 		 */
 		node->data = new_keynode(ds, keytable, managed, initial);
+		if (callback != NULL) {
+			(*callback)(keyname, callback_arg);
+		}
 	} else if (result == ISC_R_EXISTS) {
 		/*
 		 * A node already exists for "keyname" in "keytable".
@@ -393,6 +397,9 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 			if (knode == NULL) {
 				node->data = new_keynode(ds, keytable, managed,
 							 initial);
+				if (callback != NULL) {
+					(*callback)(keyname, callback_arg);
+				}
 			} else {
 				add_ds(knode, ds, keytable->mctx);
 			}
@@ -407,20 +414,23 @@ insert(dns_keytable_t *keytable, bool managed, bool initial,
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, bool managed, bool initial,
-		 dns_name_t *name, dns_rdata_ds_t *ds) {
+		 dns_name_t *name, dns_rdata_ds_t *ds,
+		 dns_keytable_callback_t callback, void *callback_arg) {
 	REQUIRE(ds != NULL);
 	REQUIRE(!initial || managed);
 
-	return (insert(keytable, managed, initial, name, ds));
+	return (insert(keytable, managed, initial, name, ds, callback,
+		       callback_arg));
 }
 
 isc_result_t
 dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name) {
-	return (insert(keytable, true, false, name, NULL));
+	return (insert(keytable, true, false, name, NULL, NULL, NULL));
 }
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname,
+		    dns_keytable_callback_t callback, void *callback_arg) {
 	isc_result_t result;
 	dns_rbtnode_t *node = NULL;
 
@@ -434,6 +444,9 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname) {
 		if (node->data != NULL) {
 			result = dns_rbt_deletenode(keytable->table, node,
 						    false);
+			if (callback != NULL) {
+				(*callback)(keyname, callback_arg);
+			}
 		} else {
 			result = ISC_R_NOTFOUND;
 		}

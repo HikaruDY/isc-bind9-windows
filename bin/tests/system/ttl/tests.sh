@@ -11,7 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 dig_with_options() { "$DIG" +noadd +nosea +nostat +noquest +nocomm +nocmd -p "${PORT}" "$@"; }
 

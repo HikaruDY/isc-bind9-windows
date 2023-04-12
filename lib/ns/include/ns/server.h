@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_SERVER_H
-#define NS_SERVER_H 1
+#pragma once
 
 /*! \file */
 
@@ -30,9 +29,8 @@
 #include <dns/acl.h>
 #include <dns/types.h>
 
+#include <ns/events.h>
 #include <ns/types.h>
-
-#define NS_EVENT_CLIENTCONTROL (ISC_EVENTCLASS_NS + 0)
 
 #define NS_SERVER_LOGQUERIES   0x00000001U /*%< log queries */
 #define NS_SERVER_NOAA	       0x00000002U /*%< -T noaa */
@@ -87,6 +85,8 @@ struct ns_server {
 	isc_quota_t tcpquota;
 	isc_quota_t xfroutquota;
 	isc_quota_t updquota;
+	ISC_LIST(isc_quota_t) http_quotas;
+	isc_mutex_t http_quotas_lock;
 
 	/*% Test options and other configurables */
 	uint32_t options;
@@ -99,8 +99,8 @@ struct ns_server {
 	dns_tkeyctx_t *tkeyctx;
 
 	/*% Server id for NSID */
-	char	       *server_id;
-	ns_hostnamecb_t gethostname;
+	char *server_id;
+	bool  usehostname;
 
 	/*% Fuzzer callback */
 	isc_fuzztype_t fuzztype;
@@ -186,4 +186,13 @@ ns_server_getoption(ns_server_t *sctx, unsigned int option);
  * Requires:
  *\li	'sctx' is valid.
  */
-#endif /* NS_SERVER_H */
+
+void
+ns_server_append_http_quota(ns_server_t *sctx, isc_quota_t *http_quota);
+/*%<
+ *	Add a quota to the list of HTTP quotas to destroy it safely later.
+ *
+ * Requires:
+ *\li	'sctx' is valid;
+ *\li	'http_quota' is not 'NULL'.
+ */

@@ -16,8 +16,7 @@
 # touch dnsrps-off to not test with DNSRPS
 # touch dnsrps-only to not test with classic RPZ
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 ns=10.53.0
 ns1=$ns.1		# root, defining the others
@@ -65,7 +64,7 @@ comment () {
 }
 
 DNSRPSCMD=./dnsrps
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 if test -x $DNSRPSCMD; then
     # speed up the many delays for dnsrpzd by waiting only 0.1 seconds
@@ -208,7 +207,7 @@ restart () {
 	    PID=`cat ns$1/named.pid 2>/dev/null`
 	    if test -n "$PID"; then
 		echo_i "killing ns$1 server $PID"
-		$KILL -9 $PID
+		kill -9 $PID
 	    fi
 	fi
     fi
@@ -329,7 +328,7 @@ ckresult () {
 	setret "'dig $digarg' AD set;"
     fi
 
-    if $PERL $SYSTEMTESTTOP/digcomp.pl $DIGNM $2 >/dev/null; then
+    if $PERL ../digcomp.pl $DIGNM $2 >/dev/null; then
 	grep -q 'Truncated, retrying in TCP' $DIGNM && trunc=1 || trunc=0
 	if [ "$tcp" -ne "$trunc" ]; then
 	    setret "'dig $digarg' wrong; no or unexpected truncation in $DIGNM"
@@ -384,7 +383,7 @@ addr () {
     digcmd $2 >$DIGNM
     #ckalive "$2" "server crashed by 'dig $2'" || return 1
     ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
-    ADDR_TTL=`tr -d '\r' < $DIGNM | sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p"`
+    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}[	 ]*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
     if test -z "$ADDR_TTL"; then
 	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
@@ -424,7 +423,7 @@ here () {
 }
 
 # check dropped response
-DROPPED='^;; connection timed out; no servers could be reached'
+DROPPED='^;; no servers could be reached'
 drop () {
     make_dignm
     digcmd $* >$DIGNM
@@ -464,6 +463,9 @@ make_proto_nodata() {
   grep "status: NOERROR" proto.nodata >/dev/null || return 1
   return 0
 }
+
+# ensure that the fast-expire zone is populated before we begin testing
+$RNDCCMD $ns3 retransfer fast-expire
 
 for mode in native dnsrps; do
   status=0
@@ -790,7 +792,7 @@ EOF
   if [ "$mode" = dnsrps ]; then
     echo_i "checking that dnsrpzd is automatically restarted"
     OLD_PID=`cat dnsrpzd.pid`
-    $KILL "$OLD_PID"
+    kill "$OLD_PID"
     n=0
     while true; do
 	NEW_PID=`cat dnsrpzd.pid 2>/dev/null`

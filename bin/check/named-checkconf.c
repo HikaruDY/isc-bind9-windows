@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/hash.h>
@@ -33,7 +34,6 @@
 #include <dns/log.h>
 #include <dns/name.h>
 #include <dns/rdataclass.h>
-#include <dns/result.h>
 #include <dns/rootns.h>
 #include <dns/zone.h>
 
@@ -58,8 +58,8 @@ isc_log_t *logc = NULL;
 	} while (0)
 
 /*% usage */
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+noreturn static void
+usage(void);
 
 static void
 usage(void) {
@@ -277,7 +277,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 	}
 
 	/*
-	 * Is the redirect zone configured as a slave?
+	 * Is the redirect zone configured as a secondary?
 	 */
 	if (strcasecmp(cfg_obj_asstring(typeobj), "redirect") == 0) {
 		cfg_map_get(zoptions, "primaries", &primariesobj);
@@ -441,8 +441,6 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 			masterformat = dns_masterformat_text;
 		} else if (strcasecmp(masterformatstr, "raw") == 0) {
 			masterformat = dns_masterformat_raw;
-		} else if (strcasecmp(masterformatstr, "map") == 0) {
-			masterformat = dns_masterformat_map;
 		} else {
 			UNREACHABLE();
 		}
@@ -458,7 +456,7 @@ configure_zone(const char *vclass, const char *view, const cfg_obj_t *zconfig,
 			   NULL);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "%s/%s/%s: %s\n", view, zname, zclass,
-			dns_result_totext(result));
+			isc_result_totext(result));
 	}
 	return (result);
 }
@@ -616,12 +614,6 @@ main(int argc, char **argv) {
 			{
 				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
 			}
-			if (strcasecmp(isc_commandline_argument, "size") == 0) {
-				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
-			}
-			if (strcasecmp(isc_commandline_argument, "mctx") == 0) {
-				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
-			}
 			break;
 		default:
 			break;
@@ -670,7 +662,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'v':
-			printf(VERSION "\n");
+			printf("%s\n", PACKAGE_VERSION);
 			exit(0);
 
 		case 'x':
@@ -719,13 +711,7 @@ main(int argc, char **argv) {
 		conffile = NAMED_CONFFILE;
 	}
 
-#ifdef _WIN32
-	InitSockets();
-#endif /* ifdef _WIN32 */
-
 	RUNTIME_CHECK(setup_logging(mctx, stdout, &logc) == ISC_R_SUCCESS);
-
-	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
 
@@ -762,10 +748,6 @@ main(int argc, char **argv) {
 	isc_log_destroy(&logc);
 
 	isc_mem_destroy(&mctx);
-
-#ifdef _WIN32
-	DestroySockets();
-#endif /* ifdef _WIN32 */
 
 	return (exit_status);
 }

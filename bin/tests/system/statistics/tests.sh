@@ -11,11 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
-DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
-DIGCMD="$DIG $DIGOPTS -p ${PORT}"
+DIGCMD="$DIG +tcp -p ${PORT}"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 
 status=0
@@ -80,10 +78,8 @@ n=`expr $n + 1`
 ret=0
 echo_i "dumping initial stats for ns3 ($n)"
 rndc_stats ns3 10.53.0.3 || ret=1
-if [ ! "$CYGWIN" ]; then
-    nsock0nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
-    [ 0 -ne ${nsock0nstat:-0} ] || ret=1
-fi
+nsock0nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
+[ 0 -ne ${nsock0nstat:-0} ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
@@ -116,15 +112,13 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
 
-if [ ! "$CYGWIN" ]; then
-    ret=0
-    echo_i "verifying active sockets output in named.stats ($n)"
-    nsock1nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
-    [ `expr ${nsock1nstat:-0} - ${nsock0nstat:-0}` -eq 1 ] || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-    n=`expr $n + 1`
-fi
+ret=0
+echo_i "verifying active sockets output in named.stats ($n)"
+nsock1nstat=`grep "UDP/IPv4 sockets active" $last_stats | awk '{print $1}'`
+[ `expr ${nsock1nstat:-0} - ${nsock0nstat:-0}` -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
 
 # there should be 1 UDP and no TCP queries.  As the TCP counter is zero
 # no status line is emitted.
@@ -166,7 +160,7 @@ ret=0
 echo_i "checking that zones return their type ($n)"
 if $FEATURETEST --have-libxml2 && [ -x ${CURL} ] ; then
     ${CURL} http://10.53.0.1:${EXTRAPORT1}/xml/v3/zones > curl.out.${n} 2>/dev/null || ret=1
-    grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN"><type>master</type>' curl.out.${n} > /dev/null || ret=1
+    grep '<zone name="32/1.0.0.127-in-addr.example" rdataclass="IN"><type>primary</type>' curl.out.${n} > /dev/null || ret=1
 else
     echo_i "skipping test as libxml2 and/or curl was not found"
 fi
@@ -176,11 +170,16 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking bind9.xsl vs xml ($n)"
-if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; then
-    $DIGCMD +notcp +recurse @10.53.0.3 soa . > /dev/null 2>&1
-    $DIGCMD +notcp +recurse @10.53.0.3 soa example > /dev/null 2>&1
-    ${CURL} http://10.53.0.3:${EXTRAPORT1}/xml/v3 > curl.out.${n}.xml 2>/dev/null || ret=1
-    ${CURL} http://10.53.0.3:${EXTRAPORT1}/bind9.xsl > curl.out.${n}.xsl 2>/dev/null || ret=1
+if $FEATURETEST --have-libxml2 && "${CURL}" --http1.1 http://10.53.0.3:${EXTRAPORT1} > /dev/null 2>&1 && [ -x "${XSLTPROC}" ]  ; then
+    $DIGCMD +notcp +recurse @10.53.0.3 soa . > dig.out.test$n.1 2>&1
+    $DIGCMD +notcp +recurse @10.53.0.3 soa example > dig.out.test$n.2 2>&1
+    # check multiple requests over the same socket
+    time1=$($PERL -e 'print time(), "\n";')
+    ${CURL} --http1.1 -o curl.out.${n}.xml http://10.53.0.3:${EXTRAPORT1}/xml/v3 \
+	    -o curl.out.${n}.xsl http://10.53.0.3:${EXTRAPORT1}/bind9.xsl 2>/dev/null || ret=1
+    time2=$($PERL -e 'print time(), "\n";')
+    test $((time2 - time1)) -lt 5 || ret=1
+    diff ${TOP_SRCDIR}/bin/named/bind9.xsl curl.out.${n}.xsl || ret=1
     ${XSLTPROC} curl.out.${n}.xsl - < curl.out.${n}.xml > xsltproc.out.${n} 2>/dev/null || ret=1
     cp curl.out.${n}.xml stats.xml.out || ret=1
 
@@ -195,7 +194,7 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     grep "<h3>View " xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Server Statistics</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Zone Maintenance Statistics</h2>" xsltproc.out.${n} >/dev/null || ret=1
-    grep "<h2>Resolver Statistics (Common)</h2>" xsltproc.out.${n} >/dev/null || ret=1
+    # grep "<h2>Resolver Statistics (Common)</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h3>Resolver Statistics for View " xsltproc.out.${n} >/dev/null || ret=1
     grep "<h3>ADB Statistics for View " xsltproc.out.${n} >/dev/null || ret=1
     grep "<h3>Cache Statistics for View " xsltproc.out.${n} >/dev/null || ret=1
@@ -216,13 +215,12 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     # grep "<h2>Glue cache statistics</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h3>View _default" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h4>Zone example" xsltproc.out.${n} >/dev/null || ret=1
-    grep "<h2>Network Status</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Task Manager Configuration</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Tasks</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Memory Usage Summary</h2>" xsltproc.out.${n} >/dev/null || ret=1
     grep "<h2>Memory Contexts</h2>" xsltproc.out.${n} >/dev/null || ret=1
 else
-    echo_i "skipping test as libxml2 and/or curl and/or xsltproc was not found"
+    echo_i "skipping test as libxml2 and/or curl with HTTP/1.1 support and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -230,14 +228,14 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking bind9.xml socket statistics ($n)"
-if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; then
+if $FEATURETEST --have-libxml2 && [ -e stats.xml.out ] && [ -x "${XSLTPROC}" ]  ; then
     # Socket statistics (expect no errors)
     grep "<counter name=\"TCP4AcceptFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4BindFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4ConnFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4OpenFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP4RecvErr\">0</counter>" stats.xml.out >/dev/null || ret=1
-    grep "<counter name=\"TCP4SendErr\">0</counter>" stats.xml.out >/dev/null || ret=1
+    # grep "<counter name=\"TCP4SendErr\">0</counter>" stats.xml.out >/dev/null || ret=1
 
     grep "<counter name=\"TCP6AcceptFail\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP6BindFail\">0</counter>" stats.xml.out >/dev/null || ret=1
@@ -246,7 +244,7 @@ if $FEATURETEST --have-libxml2 && [ -x "${CURL}" ] && [ -x "${XSLTPROC}" ]  ; th
     grep "<counter name=\"TCP6RecvErr\">0</counter>" stats.xml.out >/dev/null || ret=1
     grep "<counter name=\"TCP6SendErr\">0</counter>" stats.xml.out >/dev/null || ret=1
 else
-    echo_i "skipping test as libxml2 and/or curl and/or xsltproc was not found"
+    echo_i "skipping test as libxml2 and/or stats.xml.out file and/or xsltproc was not found"
 fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

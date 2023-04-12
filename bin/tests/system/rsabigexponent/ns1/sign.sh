@@ -11,14 +11,13 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=.
 infile=root.db.in
 zonefile=root.db
 
-cp ../ns2/dsset-example.in dsset-example$TP
+cp ../ns2/dsset-example.in dsset-example.
 
 keyname=`$KEYGEN -q -a RSASHA256 -b 2048 -n zone $zone`
 

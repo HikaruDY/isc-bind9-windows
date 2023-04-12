@@ -11,11 +11,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
 t=0
@@ -162,7 +161,8 @@ grep "status: NOERROR" dig.out.3.${t} > /dev/null 2>&1 || ret=1
 $DIG -p ${PORT} soa example. \
 	@10.53.0.2 -b 10.53.0.8 > dig.out.4.${t}
 grep "status: NOERROR" dig.out.4.${t} > /dev/null 2>&1 && ret=1
-grep "connection timed out" dig.out.4.${t} > /dev/null 2>&1 || ret=1
+grep "timed out" dig.out.4.${t} > /dev/null 2>&1 || ret=1
+grep ";; no servers could be reached" dig.out.4.${t} > /dev/null 2>&1 || ret=1
 [ $ret -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 

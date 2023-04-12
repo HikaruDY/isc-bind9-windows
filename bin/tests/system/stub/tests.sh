@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp -p ${PORT}"
 
@@ -62,7 +61,7 @@ digcomp knowngood.dig.out.rec dig.out.ns3 || ret=1
 }
 done
 
-echo_i "check that glue record is correctly transferred from master when minimal-responses is on"
+echo_i "check that glue record is correctly transferred from primary when minimal-responses is on"
 ret=0
 # First ensure that zone data was transfered.
 for i in 1 2 3 4 5 6 7; do
@@ -80,7 +79,7 @@ if [ -f ns5/example.db ]; then
     [ $ret = 0 ] || { status=1;  echo_i "failed"; }
 else
     status=1
-    echo_i "failed: stub zone transfer failed ns4(master) <---> ns5/example.db"
+    echo_i "failed: stub zone transfer failed ns4(primary) <---> ns5/example.db"
 fi
 
 echo_i "exit status: $status"

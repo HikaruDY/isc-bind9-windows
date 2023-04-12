@@ -17,15 +17,17 @@ BIND 9 Administrator Reference Manual
    :numbered:
    :maxdepth: 2
 
-   introduction
-   requirements
-   configuration
+   chapter1
+   chapter2
+   chapter3
+   chapter4
+   chapter5
+   chapter6
+   chapter7
    reference
-   dnssec.inc
-   advanced
-   security
-   troubleshooting
-   
+   chapter9
+   chapter10
+
 .. toctree::
    :caption: Appendices
    :name: appendices

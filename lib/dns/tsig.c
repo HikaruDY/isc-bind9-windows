@@ -21,12 +21,11 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/refcount.h>
+#include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/string.h> /* Required for HP/UX (and others?) */
 #include <isc/time.h>
 #include <isc/util.h>
-
-#include <pk11/site.h>
 
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
@@ -37,10 +36,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 #include <dns/tsig.h>
-
-#include <dst/result.h>
 
 #include "tsig_p.h"
 
@@ -60,13 +56,13 @@ static unsigned char hmacmd5_offsets[] = { 0, 9, 17, 21, 25 };
 
 static dns_name_t const hmacmd5 = DNS_NAME_INITABSOLUTE(hmacmd5_ndata,
 							hmacmd5_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
+const dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
 
 static unsigned char gsstsig_ndata[] = "\010gss-tsig";
 static unsigned char gsstsig_offsets[] = { 0, 9 };
 static dns_name_t const gsstsig = DNS_NAME_INITABSOLUTE(gsstsig_ndata,
 							gsstsig_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_gssapi_name = &gsstsig;
+const dns_name_t *dns_tsig_gssapi_name = &gsstsig;
 
 /*
  * Since Microsoft doesn't follow its own standard, we will use this
@@ -76,37 +72,37 @@ static unsigned char gsstsigms_ndata[] = "\003gss\011microsoft\003com";
 static unsigned char gsstsigms_offsets[] = { 0, 4, 14, 18 };
 static dns_name_t const gsstsigms = DNS_NAME_INITABSOLUTE(gsstsigms_ndata,
 							  gsstsigms_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
+const dns_name_t *dns_tsig_gssapims_name = &gsstsigms;
 
 static unsigned char hmacsha1_ndata[] = "\011hmac-sha1";
 static unsigned char hmacsha1_offsets[] = { 0, 10 };
 static dns_name_t const hmacsha1 = DNS_NAME_INITABSOLUTE(hmacsha1_ndata,
 							 hmacsha1_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacsha1_name = &hmacsha1;
+const dns_name_t *dns_tsig_hmacsha1_name = &hmacsha1;
 
 static unsigned char hmacsha224_ndata[] = "\013hmac-sha224";
 static unsigned char hmacsha224_offsets[] = { 0, 12 };
 static dns_name_t const hmacsha224 = DNS_NAME_INITABSOLUTE(hmacsha224_ndata,
 							   hmacsha224_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacsha224_name = &hmacsha224;
+const dns_name_t *dns_tsig_hmacsha224_name = &hmacsha224;
 
 static unsigned char hmacsha256_ndata[] = "\013hmac-sha256";
 static unsigned char hmacsha256_offsets[] = { 0, 12 };
 static dns_name_t const hmacsha256 = DNS_NAME_INITABSOLUTE(hmacsha256_ndata,
 							   hmacsha256_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacsha256_name = &hmacsha256;
+const dns_name_t *dns_tsig_hmacsha256_name = &hmacsha256;
 
 static unsigned char hmacsha384_ndata[] = "\013hmac-sha384";
 static unsigned char hmacsha384_offsets[] = { 0, 12 };
 static dns_name_t const hmacsha384 = DNS_NAME_INITABSOLUTE(hmacsha384_ndata,
 							   hmacsha384_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacsha384_name = &hmacsha384;
+const dns_name_t *dns_tsig_hmacsha384_name = &hmacsha384;
 
 static unsigned char hmacsha512_ndata[] = "\013hmac-sha512";
 static unsigned char hmacsha512_offsets[] = { 0, 12 };
 static dns_name_t const hmacsha512 = DNS_NAME_INITABSOLUTE(hmacsha512_ndata,
 							   hmacsha512_offsets);
-LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacsha512_name = &hmacsha512;
+const dns_name_t *dns_tsig_hmacsha512_name = &hmacsha512;
 
 static const struct {
 	const dns_name_t *name;
@@ -800,7 +796,12 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_name_init(&tsig.algorithm, NULL);
 	dns_name_clone(key->algorithm, &tsig.algorithm);
 
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
+
 	tsig.timesigned = now + msg->timeadjust;
 	tsig.fudge = DNS_TSIG_FUDGE;
 
@@ -1024,7 +1025,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS) {
 		goto cleanup_rdata;
 	}
-	dns_name_copynf(&key->name, owner);
+	dns_name_copy(&key->name, owner);
 
 	ret = dns_message_gettemprdatalist(msg, &datalist);
 	if (ret != ISC_R_SUCCESS) {
@@ -1168,7 +1169,11 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	/*
 	 * Get the current time.
 	 */
-	isc_stdtime_get(&now);
+	if (msg->fuzzing) {
+		now = msg->fuzztime;
+	} else {
+		isc_stdtime_get(&now);
+	}
 
 	/*
 	 * Find dns_tsigkey_t based on keyname.
@@ -1584,8 +1589,6 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		 * XXX Can TCP transfers be forwarded?  How would that
 		 * work?
 		 */
-		/* cppcheck-suppress uninitStructMember
-		 * symbolName=tsig.originalid */
 		id = htons(tsig.originalid);
 		memmove(&header[0], &id, 2);
 	}
@@ -1666,7 +1669,11 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		/*
 		 * Is the time ok?
 		 */
-		isc_stdtime_get(&now);
+		if (msg->fuzzing) {
+			now = msg->fuzztime;
+		} else {
+			isc_stdtime_get(&now);
+		}
 
 		if (now + msg->timeadjust > tsig.timesigned + tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;

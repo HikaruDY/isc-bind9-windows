@@ -11,25 +11,16 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
+# macOS ships with Net::DNS 0.74 which does not work with
+# HMAC-SHA256, despite the workarounds in ans.pl
+
+if perl -MNet::DNS -e 'exit $Net::DNS::VERSION >= 1.0'
 then
-    if $PERL -e 'use Net::DNS; die if ($Net::DNS::VERSION >= 0.69 && $Net::DNS::VERSION <= 0.74);' 2>/dev/null
-    then
-        :
-    else
-        echo_i "Net::DNS versions 0.69 to 0.74 have bugs that cause this test to fail: please update." >&2
-        exit 1
-    fi
-else
-    echo_i "This test requires the Net::DNS library." >&2
-    exit 1
+	version=$(perl -MNet::DNS -e 'print $Net::DNS::VERSION')
+	echo_i "perl Net::DNS $version is too old - skipping xfer test"
+	exit 1
 fi
 
-if ! $PERL -e 'use Digest::HMAC;' 2>/dev/null
-then
-    echo_i "This test requires the Digest::HMAC Perl module." >&2
-    exit 1
-fi
+exit 0

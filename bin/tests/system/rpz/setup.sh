@@ -15,8 +15,7 @@
 
 set -e
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 QPERF=$($SHELL qperf.sh)
 
@@ -59,7 +58,7 @@ copy_setports ns10/named.conf.in ns10/named.conf
 copy_setports dnsrpzd.conf.in dnsrpzd.conf
 
 # decide whether to test DNSRPS
-# Note that dnsrps.conf and dnsrps-slave.conf are included in named.conf
+# Note that dnsrps.conf and dnsrps-secondary.conf are included in named.conf
 # and differ from dnsrpz.conf which is used by dnsrpzd.
 $SHELL ../ckdnsrps.sh -A $TEST_DNSRPS $DEBUG
 test -z "$(grep 'dnsrps-enable yes' dnsrps.conf)" && TEST_DNSRPS=
@@ -92,7 +91,7 @@ signzone () {
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
     $SIGNER -P -K $1 -o $2 -f $1/$4 $1/tmp >/dev/null
     sed -n -e 's/\(.*\) IN DNSKEY \([0-9]\{1,\} [0-9]\{1,\} [0-9]\{1,\}\) \(.*\)/trust-anchors {"\1" static-key \2 "\3";};/p' $1/$KEYNAME.key >>trusted.conf
-    DSFILENAME=dsset-${2}${TP}
+    DSFILENAME=dsset-${2}.
     rm $DSFILENAME $1/tmp
 }
 signzone ns2 tld2s base-tld2s.db tld2s.db

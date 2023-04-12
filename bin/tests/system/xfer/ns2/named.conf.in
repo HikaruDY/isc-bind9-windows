@@ -27,7 +27,7 @@ options {
 
 key rndc_key {
 	secret "1234abcd8765";
-	algorithm hmac-sha256;
+	algorithm @DEFAULT_HMAC@;
 };
 
 controls {
@@ -71,4 +71,13 @@ zone "mapped" {
 	file "mapped.db";
 	masterfile-format text;
 	primaries { 10.53.0.100; };
+};
+
+zone "dot-fallback" {
+	type secondary;
+	file "dot-fallback.db";
+	primaries {
+		10.53.0.1 tls ephemeral;
+		10.53.0.1;
+	};
 };

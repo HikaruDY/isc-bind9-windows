@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_RBTDB_H
-#define DNS_RBTDB_H 1
+#pragma once
 
 #include <isc/lang.h>
 
@@ -48,5 +47,3 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *base, dns_dbtype_t type,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_RBTDB_H */

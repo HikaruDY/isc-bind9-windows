@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef DNS_ECS_H
-#define DNS_ECS_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -80,5 +79,3 @@ dns_ecs_format(const dns_ecs_t *ecs, char *buf, size_t size);
  * \li  'size' is at least DNS_ECS_FORMATSIZE
  */
 ISC_LANG_ENDDECLS
-
-#endif /* DNS_ECS_H */

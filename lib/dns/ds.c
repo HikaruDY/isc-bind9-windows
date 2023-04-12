@@ -18,6 +18,7 @@
 #include <isc/buffer.h>
 #include <isc/md.h>
 #include <isc/region.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
 #include <dns/ds.h>
@@ -25,7 +26,6 @@
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdatastruct.h>
-#include <dns/result.h>
 
 #include <dst/dst.h>
 

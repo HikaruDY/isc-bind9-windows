@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_MEMINFO_H
-#define ISC_MEMINFO_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -29,5 +28,3 @@ isc_meminfo_totalphys(void);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_MEMINFO_H */

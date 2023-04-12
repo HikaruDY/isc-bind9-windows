@@ -14,11 +14,13 @@
 #include <stdio.h>
 
 #include <openssl/opensslv.h>
-#include <openssl/sha.h>
 
 #include <isc/iterated_hash.h>
-#include <isc/thread.h>
 #include <isc/util.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || OPENSSL_API_LEVEL < 30000
+
+#include <openssl/sha.h>
 
 int
 isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
@@ -62,3 +64,71 @@ isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
 
 	return (SHA_DIGEST_LENGTH);
 }
+
+#else
+
+#include <openssl/evp.h>
+
+#include <isc/md.h>
+
+int
+isc_iterated_hash(unsigned char *out, const unsigned int hashalg,
+		  const int iterations, const unsigned char *salt,
+		  const int saltlength, const unsigned char *in,
+		  const int inlength) {
+	REQUIRE(out != NULL);
+
+	int n = 0;
+	size_t len;
+	unsigned int outlength = 0;
+	const unsigned char *buf;
+	EVP_MD_CTX *ctx;
+	;
+	EVP_MD *md;
+
+	if (hashalg != 1) {
+		return (0);
+	}
+
+	ctx = EVP_MD_CTX_new();
+	RUNTIME_CHECK(ctx != NULL);
+	md = EVP_MD_fetch(NULL, "SHA1", NULL);
+	RUNTIME_CHECK(md != NULL);
+
+	buf = in;
+	len = inlength;
+
+	do {
+		if (EVP_DigestInit_ex(ctx, md, NULL) != 1) {
+			goto fail;
+		}
+
+		if (EVP_DigestUpdate(ctx, buf, len) != 1) {
+			goto fail;
+		}
+
+		if (EVP_DigestUpdate(ctx, salt, saltlength) != 1) {
+			goto fail;
+		}
+
+		if (EVP_DigestFinal_ex(ctx, out, &outlength) != 1) {
+			goto fail;
+		}
+
+		buf = out;
+		len = outlength;
+	} while (n++ < iterations);
+
+	EVP_MD_CTX_free(ctx);
+	EVP_MD_free(md);
+
+	return (outlength);
+
+fail:
+	EVP_MD_CTX_free(ctx);
+	EVP_MD_free(md);
+
+	return (0);
+}
+
+#endif

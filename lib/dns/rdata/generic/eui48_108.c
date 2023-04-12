@@ -161,6 +161,7 @@ additionaldata_eui48(ARGS_ADDLDATA) {
 	REQUIRE(rdata->length == 6);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

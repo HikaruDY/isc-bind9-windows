@@ -12,11 +12,9 @@
  */
 
 #include <isc/mem.h>
+#include <isc/result.h>
 #include <isc/util.h>
 
-#include <pk11/site.h>
-
-#include <dns/result.h>
 #include <dns/tsec.h>
 #include <dns/tsig.h>
 

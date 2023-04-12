@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_HEAP_H
-#define ISC_HEAP_H 1
+#pragma once
 
 /*! \file isc/heap.h */
 
@@ -160,5 +159,3 @@ isc_heap_foreach(isc_heap_t *heap, isc_heapaction_t action, void *uap);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_HEAP_H */

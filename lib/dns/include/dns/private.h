@@ -19,8 +19,7 @@
 #include <dns/db.h>
 #include <dns/types.h>
 
-#ifndef DNS_PRIVATE_H
-#define DNS_PRIVATE_H
+#pragma once
 
 ISC_LANG_BEGINDECLS
 
@@ -65,5 +64,3 @@ dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ifndef DNS_PRIVATE_H */

@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISCCFG_ACLCONF_H
-#define ISCCFG_ACLCONF_H 1
+#pragma once
 
 #include <inttypes.h>
 
@@ -90,5 +89,3 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISCCFG_ACLCONF_H */

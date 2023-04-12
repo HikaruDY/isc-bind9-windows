@@ -495,7 +495,6 @@ static isc_result_t
 tostruct_naptr(ARGS_TOSTRUCT) {
 	dns_rdata_naptr_t *naptr = target;
 	isc_region_t r;
-	isc_result_t result;
 	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
@@ -548,10 +547,7 @@ tostruct_naptr(ARGS_TOSTRUCT) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 	dns_name_init(&naptr->replacement, NULL);
-	result = name_duporclone(&name, mctx, &naptr->replacement);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
+	name_duporclone(&name, mctx, &naptr->replacement);
 	naptr->mctx = mctx;
 	return (ISC_R_SUCCESS);
 
@@ -603,6 +599,8 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
 
+	UNUSED(owner);
+
 	/*
 	 * Order, preference.
 	 */
@@ -644,7 +642,7 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0) {
-		return ((add)(arg, &name, atype));
+		return ((add)(arg, &name, atype, NULL));
 	}
 
 	return (ISC_R_SUCCESS);

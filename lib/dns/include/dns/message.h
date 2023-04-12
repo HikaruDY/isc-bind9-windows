@@ -114,8 +114,49 @@
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
-/*%< The number of EDNS options we know about. */
-#define DNS_EDNSOPTIONS 7
+/*%<
+ * The maximum number of EDNS options we allow to set. Reserve space for the
+ * options we know about. Extended DNS Errors may occur multiple times, but we
+ * will set only one per message (for now).
+ */
+#define DNS_EDNSOPTIONS 8
+
+/*%< EDNS0 extended DNS errors */
+#define DNS_EDE_OTHER		     0	/*%< Other Error */
+#define DNS_EDE_DNSKEYALG	     1	/*%< Unsupported DNSKEY Algorithm */
+#define DNS_EDE_DSDIGESTTYPE	     2	/*%< Unsupported DS Digest Type */
+#define DNS_EDE_STALEANSWER	     3	/*%< Stale Answer */
+#define DNS_EDE_FORGEDANSWER	     4	/*%< Forged Answer */
+#define DNS_EDE_DNSSECINDETERMINATE  5	/*%< DNSSEC Indeterminate */
+#define DNS_EDE_DNSSECBOGUS	     6	/*%< DNSSEC Bogus */
+#define DNS_EDE_SIGNATUREEXPIRED     7	/*%< Signature Expired */
+#define DNS_EDE_SIGNATURENOTYETVALID 8	/*%< Signature Not Yet Valid */
+#define DNS_EDE_DNSKEYMISSING	     9	/*%< DNSKEY Missing */
+#define DNS_EDE_RRSIGSMISSING	     10 /*%< RRSIGs Missing */
+#define DNS_EDE_NOZONEKEYBITSET	     11 /*%< No Zone Key Bit Set */
+#define DNS_EDE_NSECMISSING	     12 /*%< NSEC Missing */
+#define DNS_EDE_CACHEDERROR	     13 /*%< Cached Error */
+#define DNS_EDE_NOTREADY	     14 /*%< Not Ready */
+#define DNS_EDE_BLOCKED		     15 /*%< Blocked */
+#define DNS_EDE_CENSORED	     16 /*%< Censored */
+#define DNS_EDE_FILTERED	     17 /*%< Filtered */
+#define DNS_EDE_PROHIBITED	     18 /*%< Prohibited */
+#define DNS_EDE_STALENXANSWER	     19 /*%< Stale NXDomain Answer */
+#define DNS_EDE_NOTAUTH		     20 /*%< Not Authoritative */
+#define DNS_EDE_NOTSUPPORTED	     21 /*%< Not Supported */
+#define DNS_EDE_NOREACHABLEAUTH	     22 /*%< No Reachable Authority */
+#define DNS_EDE_NETWORKERROR	     23 /*%< Network Error */
+#define DNS_EDE_INVALIDDATA	     24 /*%< Invalid Data */
+
+/*
+ * From RFC 8914:
+ * Because long EXTRA-TEXT fields may trigger truncation (which is undesirable
+ * given the supplemental nature of EDE), implementers and operators creating
+ * EDE options SHOULD avoid lengthy EXTRA-TEXT contents.
+ *
+ * Following this advice we limit the EXTRA-TEXT length to 64 characters.
+ */
+#define DNS_EDE_EXTRATEXT_LEN 64
 
 #define DNS_MESSAGE_REPLYPRESERVE	 (DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD)
 #define DNS_MESSAGEEXTFLAG_REPLYPRESERVE (DNS_MESSAGEEXTFLAG_DO)
@@ -197,9 +238,14 @@ typedef struct dns_msgblock dns_msgblock_t;
 
 struct dns_sortlist_arg {
 	dns_aclenv_t	       *env;
-	const dns_acl_t	       *acl;
+	dns_acl_t	       *acl;
 	const dns_aclelement_t *element;
 };
+
+typedef struct dns_minttl {
+	bool	  is_set;
+	dns_ttl_t ttl;
+} dns_minttl_t;
 
 struct dns_message {
 	/* public from here down */
@@ -235,6 +281,7 @@ struct dns_message {
 	unsigned int cc_bad	      : 1;
 	unsigned int tkey	      : 1;
 	unsigned int rdclass_set      : 1;
+	unsigned int fuzzing	      : 1;
 
 	unsigned int opt_reserved;
 	unsigned int sig_reserved;
@@ -277,10 +324,17 @@ struct dns_message {
 	isc_region_t query;
 	isc_region_t saved;
 
+	/*
+	 * Time to be used when fuzzing.
+	 */
+	isc_stdtime_t fuzztime;
+
 	dns_rdatasetorderfunc_t order;
 	dns_sortlist_arg_t	order_arg;
 
 	dns_indent_t indent;
+
+	dns_minttl_t minttl[DNS_SECTION_MAX];
 };
 
 struct dns_ednsopt {
@@ -901,7 +955,6 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -918,7 +971,6 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -936,7 +988,6 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 isc_result_t
@@ -953,7 +1004,6 @@ dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *
  * Returns:
  *\li	#ISC_R_SUCCESS		-- All is well.
- *\li	#ISC_R_NOMEMORY		-- No item can be allocated.
  */
 
 void
@@ -1373,7 +1423,7 @@ dns_message_getrawmessage(dns_message_t *msg);
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 dns_aclenv_t *env, const dns_acl_t *acl,
+			 dns_aclenv_t *env, dns_acl_t *acl,
 			 const dns_aclelement_t *element);
 /*%<
  * Define the order in which RR sets get rendered by
@@ -1487,6 +1537,30 @@ dns_message_clonebuffer(dns_message_t *msg);
  *
  * Requires:
  * \li   msg be a valid message.
+ */
+
+isc_result_t
+dns_message_minttl(dns_message_t *msg, const dns_section_t sectionid,
+		   dns_ttl_t *pttl);
+/*%<
+ * Get the smallest TTL from the 'sectionid' section of a rendered
+ * message.
+ *
+ * Requires:
+ * \li   msg be a valid rendered message;
+ * \li   'pttl != NULL'.
+ */
+
+isc_result_t
+dns_message_response_minttl(dns_message_t *msg, dns_ttl_t *pttl);
+/*%<
+ * Get the smalled TTL from the Answer section of 'msg', or if empty, try
+ * the MIN(SOA TTL, SOA MINIMUM) value from an SOA record in the Authority
+ * section. If neither of these are set, return ISC_R_NOTFOUND.
+ *
+ * Requires:
+ * \li   msg be a valid rendered message;
+ * \li   'pttl != NULL'.
  */
 
 ISC_LANG_ENDDECLS

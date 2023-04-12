@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 status=0
 n=0
@@ -21,7 +20,7 @@ rm -f dig.out.*
 
 DIGOPTS="+tcp +short -p ${PORT} @10.53.0.2"
 DIGOPTS6="+tcp +short -p ${PORT} @fd92:7065:b8e:ffff::2 -6"
-RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
+RNDCCMD="$RNDC -c ../common/rndc.conf -p ${CONTROLPORT} -s"
 
 for conf in conf/good*.conf
 do

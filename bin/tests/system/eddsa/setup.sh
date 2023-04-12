@@ -11,8 +11,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+set -e
+
+. ../conf.sh
 
 if $SHELL ../testcrypto.sh ed25519; then
 	echo "yes" > ed25519-supported.file

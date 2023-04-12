@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef NS_XFROUT_H
-#define NS_XFROUT_H 1
+#pragma once
 
 /*****
 ***** Module Info
@@ -29,5 +28,3 @@
 
 void
 ns_xfr_start(ns_client_t *client, dns_rdatatype_t xfrtype);
-
-#endif /* NS_XFROUT_H */

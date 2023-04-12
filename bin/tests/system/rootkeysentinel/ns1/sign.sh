@@ -11,8 +11,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=../..
-. $SYSTEMTESTTOP/conf.sh
+. ../../conf.sh
 
 zone=.
 infile=root.db.in
@@ -23,7 +22,7 @@ keyid=$(expr ${keyname} : 'K.+[0-9][0-9][0-9]+\(.*\)')
 
 (cd ../ns2 && $SHELL sign.sh ${keyid:-00000} )
 
-cp ../ns2/dsset-example$TP .
+cp ../ns2/dsset-example. .
 
 cat $infile $keyname.key > $zonefile
 

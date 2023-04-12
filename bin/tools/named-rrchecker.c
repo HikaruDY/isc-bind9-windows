@@ -14,11 +14,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -27,15 +29,14 @@
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
-#include <dns/result.h>
 
 static isc_mem_t *mctx;
 static isc_lex_t *lex;
 
 static isc_lexspecials_t specials;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+noreturn static void
+usage(void);
 
 static void
 usage(void) {
@@ -51,8 +52,19 @@ usage(void) {
 	exit(0);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+static void
+cleanup(void) {
+	if (lex != NULL) {
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+	}
+	if (mctx != NULL) {
+		isc_mem_destroy(&mctx);
+	}
+}
+
+noreturn static void
+fatal(const char *format, ...);
 
 static void
 fatal(const char *format, ...) {
@@ -63,6 +75,7 @@ fatal(const char *format, ...) {
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fputc('\n', stderr);
+	cleanup();
 	exit(1);
 }
 
@@ -176,7 +189,7 @@ main(int argc, char *argv[]) {
 		result = dns_name_fromstring(name, origin, 0, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_name_fromstring: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 	}
 
@@ -210,7 +223,7 @@ main(int argc, char *argv[]) {
 				&rdclass, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdataclass_fromtext: %s",
-				      dns_result_totext(result));
+				      isc_result_totext(result));
 			}
 			if (dns_rdataclass_ismeta(rdclass)) {
 				fatal("class %.*s(%d) is a meta value",
@@ -251,7 +264,7 @@ main(int argc, char *argv[]) {
 				&rdtype, &token.value.as_textregion);
 			if (result != ISC_R_SUCCESS) {
 				fatal("dns_rdatatype_fromtext: %s",
-				      dns_result_totext(result));
+				      isc_result_totext(result));
 			}
 			if (dns_rdatatype_ismeta(rdtype)) {
 				fatal("type %.*s(%d) is a meta value",
@@ -267,7 +280,7 @@ main(int argc, char *argv[]) {
 					    0, mctx, &dbuf, NULL);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_fromtext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		once = true;
 	}
@@ -283,19 +296,19 @@ main(int argc, char *argv[]) {
 		result = dns_rdataclass_totext(rdclass, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdataclass_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdatatype_totext(rdtype, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdatatype_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_totext(&rdata, NULL, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_totext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 
 		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);
@@ -307,13 +320,13 @@ main(int argc, char *argv[]) {
 		result = dns_rdataclass_tounknowntext(rdclass, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdataclass_tounknowntext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdatatype_tounknowntext(rdtype, &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdatatype_tounknowntext: %s",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 		isc_buffer_putstr(&tbuf, "\t");
 		result = dns_rdata_tofmttext(&rdata, NULL,
@@ -321,15 +334,13 @@ main(int argc, char *argv[]) {
 					     "", &tbuf);
 		if (result != ISC_R_SUCCESS) {
 			fatal("dns_rdata_tofmttext: %sn",
-			      dns_result_totext(result));
+			      isc_result_totext(result));
 		}
 
 		printf("%.*s\n", (int)tbuf.used, (char *)tbuf.base);
 		fflush(stdout);
 	}
 
-	isc_lex_close(lex);
-	isc_lex_destroy(&lex);
-	isc_mem_destroy(&mctx);
+	cleanup();
 	return (0);
 }

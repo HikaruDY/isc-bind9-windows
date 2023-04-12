@@ -52,8 +52,7 @@
 # and querying as necessary.
 #
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+. ../conf.sh
 
 DIGOPTS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +dnssec -p ${PORT}"
 
@@ -94,6 +93,20 @@ echo_i "test $n: none - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
+grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
+nextpart ns2/named.run | grep 'recursion not enabled for view' > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+DIGNOEDNS="+tcp +nosea +nostat +nocmd +norec +noques +noauth +noadd +nostats +noedns -p ${PORT}"
+
+echo_i "test $n: none - query refused (no edns)"
+ret=0
+$DIG $DIGNOEDNS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
+grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null && ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -120,6 +133,7 @@ echo_i "test $n: address not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -133,6 +147,7 @@ echo_i "test $n: address disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -159,6 +174,7 @@ echo_i "test $n: acl not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -173,6 +189,7 @@ echo_i "test $n: acl disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -199,6 +216,7 @@ echo_i "test $n: key not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -212,6 +230,7 @@ echo_i "test $n: key disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -254,6 +273,7 @@ echo_i "test $n: views none - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -280,6 +300,7 @@ echo_i "test $n: views address not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -293,6 +314,7 @@ echo_i "test $n: views address disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -319,6 +341,7 @@ echo_i "test $n: views acl not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -332,6 +355,7 @@ echo_i "test $n: views acl disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -358,6 +382,7 @@ echo_i "test $n: views key not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -371,6 +396,7 @@ echo_i "test $n: views key disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -397,6 +423,7 @@ echo_i "test $n: views over options, views disallow - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -434,6 +461,7 @@ echo_i "test $n: zone none - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.none.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.none.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -454,6 +482,7 @@ echo_i "test $n: zone address not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.addrnotallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.addrnotallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -464,6 +493,7 @@ echo_i "test $n: zone address disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.addrdisallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.addrdisallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -484,6 +514,7 @@ echo_i "test $n: zone acl not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.aclnotallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.aclnotallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -494,6 +525,7 @@ echo_i "test $n: zone acl disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.acldisallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.acldisallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -514,6 +546,7 @@ echo_i "test $n: zone key not allowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y two:1234efgh8765 a.keyallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.keyallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -524,6 +557,7 @@ echo_i "test $n: zone key disallowed - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 -y one:1234abcd8765 a.keydisallow.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.keydisallow.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -550,6 +584,7 @@ echo_i "test $n: views over options, views disallow - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -576,6 +611,7 @@ echo_i "test $n: zones over views, views disallow - query refused"
 ret=0
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.normal.example a > dig.out.ns2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -592,6 +628,7 @@ grep 'status: NOERROR' dig.out.ns2.1.$n > /dev/null || ret=1
 grep '^a.normal.example' dig.out.ns2.1.$n > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.2 -b 10.53.0.2 a.aclnotallow.example a > dig.out.ns2.2.$n || ret=1
 grep 'status: REFUSED' dig.out.ns2.2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns2.2.$n > /dev/null || ret=1
 grep '^a.aclnotallow.example' dig.out.ns2.2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -600,10 +637,13 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "test $n: default allow-recursion configuration"
 ret=0
+nextpart ns3/named.run > /dev/null
 $DIG -p ${PORT} @10.53.0.3 -b 127.0.0.1 a.normal.example a > dig.out.ns3.1.$n
 grep 'status: NOERROR' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 -b 10.53.0.1 a.normal.example a > dig.out.ns3.2.$n
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -615,6 +655,8 @@ $DIG -p ${PORT} @10.53.0.3 -b 127.0.0.1 ns . > dig.out.ns3.1.$n
 grep 'status: NOERROR' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 -b 10.53.0.1 ns . > dig.out.ns3.2.$n
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -633,6 +675,7 @@ grep 'ANSWER: 1' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.0.3 b.normal.example a > dig.out.ns3.2.$n
 grep 'recursion requested but not available' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'ANSWER: 0' dig.out.ns3.2.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -650,6 +693,7 @@ grep 'ANSWER: 1' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.1.2 a.normal.example a > dig.out.ns3.2.$n
 grep 'recursion requested but not available' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
 # this should require recursion and should be allowed
 $DIG -p ${PORT} @10.53.0.3 c.normal.example a > dig.out.ns3.3.$n
 grep 'ANSWER: 1' dig.out.ns3.3.$n > /dev/null || ret=1
@@ -657,6 +701,8 @@ grep 'ANSWER: 1' dig.out.ns3.3.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.1.2 d.normal.example a > dig.out.ns3.4.$n
 grep 'recursion requested but not available' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.4.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.4.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -674,6 +720,7 @@ grep 'ANSWER: 1' dig.out.ns3.1.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.1.2 a.normal.example a > dig.out.ns3.2.$n
 grep 'recursion requested but not available' dig.out.ns3.2.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.2.$n > /dev/null || ret=1
 # this should require recursion and should be allowed
 $DIG -p ${PORT} @10.53.0.3 e.normal.example a > dig.out.ns3.3.$n
 grep 'ANSWER: 1' dig.out.ns3.3.$n > /dev/null || ret=1
@@ -681,6 +728,8 @@ grep 'ANSWER: 1' dig.out.ns3.3.$n > /dev/null || ret=1
 $DIG -p ${PORT} @10.53.1.2 f.normal.example a > dig.out.ns3.4.$n
 grep 'recursion requested but not available' dig.out.ns3.4.$n > /dev/null || ret=1
 grep 'status: REFUSED' dig.out.ns3.4.$n > /dev/null || ret=1
+grep 'EDE: 18 (Prohibited)' dig.out.ns3.4.$n > /dev/null || ret=1
+nextpart ns3/named.run | grep 'allow-recursion-on did not match' > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

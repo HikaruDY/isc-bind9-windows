@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_HASH_H
-#define ISC_HASH_H 1
+#pragma once
 
 #include <inttypes.h>
 #include <stdbool.h>
@@ -62,5 +61,3 @@ isc_hash64(const void *data, const size_t length, const bool case_sensitive);
  */
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_HASH_H */

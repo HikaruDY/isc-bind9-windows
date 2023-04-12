@@ -11,19 +11,31 @@
  * information regarding copyright ownership.
  */
 
-#ifdef GSSAPI
-
+#include <inttypes.h> /* IWYU pragma: keep */
 #include <stdbool.h>
+#include <time.h> /* IWYU pragma: keep */
+
+#if HAVE_GSSAPI_GSSAPI_H
+#include <gssapi/gssapi.h>
+#elif HAVE_GSSAPI_H
+#include <gssapi.h>
+#endif
+
+#if HAVE_GSSAPI_GSSAPI_KRB5_H
+#include <gssapi/gssapi_krb5.h>
+#elif HAVE_GSSAPI_KRB5_H
+#include <gssapi_krb5.h>
+#endif
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
 #include <dst/gssapi.h>
-#include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
@@ -350,9 +362,3 @@ dst__gssapi_init(dst_func_t **funcp) {
 	}
 	return (ISC_R_SUCCESS);
 }
-
-#else  /* ifdef GSSAPI */
-int gssapi_link_unneeded = 1;
-#endif /* ifdef GSSAPI */
-
-/*! \file */

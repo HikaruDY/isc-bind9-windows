@@ -27,12 +27,12 @@
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/rwlock.h>
 #include <isc/stat.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
+#include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/util.h>
 
@@ -46,6 +46,8 @@
 #define WRLOCK(lp)   RWLOCK(lp, isc_rwlocktype_write);
 #define RDUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_read);
 #define WRUNLOCK(lp) RWUNLOCK(lp, isc_rwlocktype_write);
+
+static thread_local bool forcelog = false;
 
 /*
  * XXXDCL make dynamic?
@@ -177,21 +179,20 @@ static const int syslog_map[] = { LOG_DEBUG,   LOG_INFO, LOG_NOTICE,
  * be overridden.  Since the default is always looked up as the first
  * channellist in the log context, it must come first in isc_categories[].
  */
-LIBISC_EXTERNAL_DATA isc_logcategory_t isc_categories[] = { { "default",
-							      0 }, /* "default
-								      must come
-								      first. */
-							    { "general", 0 },
-							    { NULL, 0 } };
+isc_logcategory_t isc_categories[] = { { "default", 0 }, /* "default
+							    must come
+							    first. */
+				       { "general", 0 },
+				       { "sslkeylog", 0 },
+				       { NULL, 0 } };
 
 /*!
- * See above comment for categories on LIBISC_EXTERNAL_DATA, and apply it to
- * modules.
+ * See above comment for categories, and apply it to modules.
  */
-LIBISC_EXTERNAL_DATA isc_logmodule_t isc_modules[] = {
-	{ "socket", 0 }, { "time", 0 },	  { "interface", 0 }, { "timer", 0 },
-	{ "file", 0 },	 { "netmgr", 0 }, { "other", 0 },     { NULL, 0 }
-};
+isc_logmodule_t isc_modules[] = { { "socket", 0 },    { "time", 0 },
+				  { "interface", 0 }, { "timer", 0 },
+				  { "file", 0 },      { "netmgr", 0 },
+				  { "other", 0 },     { NULL, 0 } };
 
 /*!
  * This essentially constant structure must be filled in at run time,
@@ -203,7 +204,7 @@ static isc_logchannellist_t default_channel;
 /*!
  * libisc logs to this context.
  */
-LIBISC_EXTERNAL_DATA isc_log_t *isc_lctx = NULL;
+isc_log_t *isc_lctx = NULL;
 
 /*!
  * Forward declarations.
@@ -1025,24 +1026,12 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 	isc_dir_t dir;
 	isc_result_t result;
 	char sep = '/';
-#ifdef _WIN32
-	char *bname2;
-#endif /* ifdef _WIN32 */
 
 	/*
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
-#ifdef _WIN32
-	bname2 = strrchr(file->name, '\\');
-	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
-	    (bname == NULL && bname2 != NULL))
-	{
-		bname = bname2;
-		sep = '\\';
-	}
-#endif /* ifdef _WIN32 */
 	if (bname != NULL) {
 		*bname++ = '\0';
 		dirname = file->name;
@@ -1103,7 +1092,7 @@ greatest_version(isc_logfile_t *file, int versions, int *greatestp) {
 }
 
 static void
-insert_sort(int64_t to_keep[], int64_t versions, int version) {
+insert_sort(int64_t to_keep[], int64_t versions, int64_t version) {
 	int i = 0;
 	while (i < versions && version < to_keep[i]) {
 		i++;
@@ -1120,12 +1109,13 @@ insert_sort(int64_t to_keep[], int64_t versions, int version) {
 
 static int64_t
 last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
-	if (versions <= 0) {
-		return INT64_MAX;
-	}
-
 	int64_t to_keep[ISC_LOG_MAX_VERSIONS] = { 0 };
 	int64_t version = 0;
+
+	if (versions <= 0) {
+		return (INT64_MAX);
+	}
+
 	if (versions > ISC_LOG_MAX_VERSIONS) {
 		versions = ISC_LOG_MAX_VERSIONS;
 	}
@@ -1134,6 +1124,9 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 	 */
 	memset(to_keep, 0, sizeof(to_keep));
 	while (isc_dir_read(dirp) == ISC_R_SUCCESS) {
+		char *digit_end = NULL;
+		char *ename = NULL;
+
 		if (dirp->entry.length <= bnamelen ||
 		    strncmp(dirp->entry.name, bname, bnamelen) != 0 ||
 		    dirp->entry.name[bnamelen] != '.')
@@ -1141,8 +1134,7 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 			continue;
 		}
 
-		char *digit_end;
-		char *ename = &dirp->entry.name[bnamelen + 1];
+		ename = &dirp->entry.name[bnamelen + 1];
 		version = strtoull(ename, &digit_end, 10);
 		if (*digit_end == '\0') {
 			insert_sort(to_keep, versions, version);
@@ -1160,29 +1152,18 @@ last_to_keep(int64_t versions, isc_dir_t *dirp, char *bname, size_t bnamelen) {
 static isc_result_t
 remove_old_tsversions(isc_logfile_t *file, int versions) {
 	isc_result_t result;
-	char *bname, *digit_end;
-	const char *dirname;
+	char *bname = NULL, *digit_end = NULL;
+	const char *dirname = NULL;
 	int64_t version, last = INT64_MAX;
 	size_t bnamelen;
 	isc_dir_t dir;
 	char sep = '/';
-#ifdef _WIN32
-	char *bname2;
-#endif /* ifdef _WIN32 */
+
 	/*
 	 * It is safe to DE_CONST the file.name because it was copied
 	 * with isc_mem_strdup().
 	 */
 	bname = strrchr(file->name, sep);
-#ifdef _WIN32
-	bname2 = strrchr(file->name, '\\');
-	if ((bname != NULL && bname2 != NULL && bname2 > bname) ||
-	    (bname == NULL && bname2 != NULL))
-	{
-		bname = bname2;
-		sep = '\\';
-	}
-#endif /* ifdef _WIN32 */
 	if (bname != NULL) {
 		*bname++ = '\0';
 		dirname = file->name;
@@ -1477,6 +1458,9 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	if (lctx == NULL) {
 		return (false);
 	}
+	if (forcelog) {
+		return (true);
+	}
 
 	int highest_level = atomic_load_acquire(&lctx->highest_level);
 	if (level <= highest_level) {
@@ -1508,6 +1492,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	bool printcategory, printmodule, printlevel, buffered;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
+	int_fast32_t dlevel;
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
@@ -1591,18 +1576,21 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 		channel = category_channels->channel;
 		category_channels = ISC_LIST_NEXT(category_channels, link);
 
-		int_fast32_t dlevel = atomic_load_acquire(&lctx->debug_level);
-		if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) && dlevel == 0)
-		{
-			continue;
-		}
-
-		if (channel->level == ISC_LOG_DYNAMIC) {
-			if (dlevel < level) {
+		if (!forcelog) {
+			dlevel = atomic_load_acquire(&lctx->debug_level);
+			if (((channel->flags & ISC_LOG_DEBUGONLY) != 0) &&
+			    dlevel == 0)
+			{
 				continue;
 			}
-		} else if (channel->level < level) {
-			continue;
+
+			if (channel->level == ISC_LOG_DYNAMIC) {
+				if (dlevel < level) {
+					continue;
+				}
+			} else if (channel->level < level) {
+				continue;
+			}
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
@@ -1890,4 +1878,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 unlock:
 	UNLOCK(&lctx->lock);
 	RDUNLOCK(&lctx->lcfg_rwl);
+}
+
+void
+isc_log_setforcelog(bool v) {
+	forcelog = v;
 }

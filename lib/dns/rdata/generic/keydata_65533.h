@@ -11,8 +11,7 @@
  * information regarding copyright ownership.
  */
 
-#ifndef GENERIC_KEYDATA_65533_H
-#define GENERIC_KEYDATA_65533_H 1
+#pragma once
 
 typedef struct dns_rdata_keydata {
 	dns_rdatacommon_t common;
@@ -26,5 +25,3 @@ typedef struct dns_rdata_keydata {
 	uint16_t datalen;
 	unsigned char *data;
 } dns_rdata_keydata_t;
-
-#endif /* GENERIC_KEYDATA_65533_H */
