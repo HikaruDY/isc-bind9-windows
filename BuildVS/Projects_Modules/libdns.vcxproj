@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(SolutionDir)\Projects_Modules\Modules.props" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>LIBDNS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <ModuleDefinitionFile>$(root)/lib/dns/win32/libdns.def</ModuleDefinitionFile>
+      <AdditionalDependencies>$(OutDir)/libisc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\lib\dns\acl.c" />
+    <ClCompile Include="..\..\lib\dns\adb.c" />
+    <ClCompile Include="..\..\lib\dns\badcache.c" />
+    <ClCompile Include="..\..\lib\dns\byaddr.c" />
+    <ClCompile Include="..\..\lib\dns\cache.c" />
+    <ClCompile Include="..\..\lib\dns\callbacks.c" />
+    <ClCompile Include="..\..\lib\dns\catz.c" />
+    <ClCompile Include="..\..\lib\dns\client.c" />
+    <ClCompile Include="..\..\lib\dns\clientinfo.c" />
+    <ClCompile Include="..\..\lib\dns\compress.c" />
+    <ClCompile Include="..\..\lib\dns\db.c" />
+    <ClCompile Include="..\..\lib\dns\dbiterator.c" />
+    <ClCompile Include="..\..\lib\dns\dbtable.c" />
+    <ClCompile Include="..\..\lib\dns\diff.c" />
+    <ClCompile Include="..\..\lib\dns\dispatch.c" />
+    <ClCompile Include="..\..\lib\dns\dlz.c" />
+    <ClCompile Include="..\..\lib\dns\dns64.c" />
+    <ClCompile Include="..\..\lib\dns\dnsrps.c" />
+    <ClCompile Include="..\..\lib\dns\dnssec.c" />
+    <ClCompile Include="..\..\lib\dns\ds.c" />
+    <ClCompile Include="..\..\lib\dns\dst_api.c" />
+    <ClCompile Include="..\..\lib\dns\dst_parse.c" />
+    <ClCompile Include="..\..\lib\dns\dst_result.c" />
+    <ClCompile Include="..\..\lib\dns\dyndb.c" />
+    <ClCompile Include="..\..\lib\dns\ecdb.c" />
+    <ClCompile Include="..\..\lib\dns\ecs.c" />
+    <ClCompile Include="..\..\lib\dns\fixedname.c" />
+    <ClCompile Include="..\..\lib\dns\forward.c" />
+    <ClCompile Include="..\..\lib\dns\gen.c" />
+    <ClCompile Include="..\..\lib\dns\gssapictx.c" />
+    <ClCompile Include="..\..\lib\dns\gssapi_link.c" />
+    <ClCompile Include="..\..\lib\dns\hmac_link.c" />
+    <ClCompile Include="..\..\lib\dns\ipkeylist.c" />
+    <ClCompile Include="..\..\lib\dns\iptable.c" />
+    <ClCompile Include="..\..\lib\dns\journal.c" />
+    <ClCompile Include="..\..\lib\dns\kasp.c" />
+    <ClCompile Include="..\..\lib\dns\key.c" />
+    <ClCompile Include="..\..\lib\dns\keydata.c" />
+    <ClCompile Include="..\..\lib\dns\keymgr.c" />
+    <ClCompile Include="..\..\lib\dns\keytable.c" />
+    <ClCompile Include="..\..\lib\dns\lib.c" />
+    <ClCompile Include="..\..\lib\dns\log.c" />
+    <ClCompile Include="..\..\lib\dns\lookup.c" />
+    <ClCompile Include="..\..\lib\dns\master.c" />
+    <ClCompile Include="..\..\lib\dns\masterdump.c" />
+    <ClCompile Include="..\..\lib\dns\message.c" />
+    <ClCompile Include="..\..\lib\dns\name.c" />
+    <ClCompile Include="..\..\lib\dns\ncache.c" />
+    <ClCompile Include="..\..\lib\dns\nsec.c" />
+    <ClCompile Include="..\..\lib\dns\nsec3.c" />
+    <ClCompile Include="..\..\lib\dns\nta.c" />
+    <ClCompile Include="..\..\lib\dns\openssldh_link.c" />
+    <ClCompile Include="..\..\lib\dns\opensslecdsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\openssleddsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\opensslrsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\openssl_link.c" />
+    <ClCompile Include="..\..\lib\dns\order.c" />
+    <ClCompile Include="..\..\lib\dns\peer.c" />
+    <ClCompile Include="..\..\lib\dns\pkcs11.c" />
+    <ClCompile Include="..\..\lib\dns\pkcs11ecdsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\pkcs11eddsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\pkcs11rsa_link.c" />
+    <ClCompile Include="..\..\lib\dns\portlist.c" />
+    <ClCompile Include="..\..\lib\dns\private.c" />
+    <ClCompile Include="..\..\lib\dns\rbt.c" />
+    <ClCompile Include="..\..\lib\dns\rbtdb.c" />
+    <ClCompile Include="..\..\lib\dns\rcode.c" />
+    <ClCompile Include="..\..\lib\dns\rdata.c" />
+    <ClCompile Include="..\..\lib\dns\rdatalist.c" />
+    <ClCompile Include="..\..\lib\dns\rdataset.c" />
+    <ClCompile Include="..\..\lib\dns\rdatasetiter.c" />
+    <ClCompile Include="..\..\lib\dns\rdataslab.c" />
+    <ClCompile Include="..\..\lib\dns\request.c" />
+    <ClCompile Include="..\..\lib\dns\resolver.c" />
+    <ClCompile Include="..\..\lib\dns\result.c" />
+    <ClCompile Include="..\..\lib\dns\rootns.c" />
+    <ClCompile Include="..\..\lib\dns\rpz.c" />
+    <ClCompile Include="..\..\lib\dns\rriterator.c" />
+    <ClCompile Include="..\..\lib\dns\rrl.c" />
+    <ClCompile Include="..\..\lib\dns\sdb.c" />
+    <ClCompile Include="..\..\lib\dns\sdlz.c" />
+    <ClCompile Include="..\..\lib\dns\soa.c" />
+    <ClCompile Include="..\..\lib\dns\ssu.c" />
+    <ClCompile Include="..\..\lib\dns\ssu_external.c" />
+    <ClCompile Include="..\..\lib\dns\stats.c" />
+    <ClCompile Include="..\..\lib\dns\tcpmsg.c" />
+    <ClCompile Include="..\..\lib\dns\time.c" />
+    <ClCompile Include="..\..\lib\dns\timer.c" />
+    <ClCompile Include="..\..\lib\dns\tkey.c" />
+    <ClCompile Include="..\..\lib\dns\tsec.c" />
+    <ClCompile Include="..\..\lib\dns\tsig.c" />
+    <ClCompile Include="..\..\lib\dns\ttl.c" />
+    <ClCompile Include="..\..\lib\dns\update.c" />
+    <ClCompile Include="..\..\lib\dns\validator.c" />
+    <ClCompile Include="..\..\lib\dns\view.c" />
+    <ClCompile Include="..\..\lib\dns\win32\DLLMain.c" />
+    <ClCompile Include="..\..\lib\dns\win32\version.c" />
+    <ClCompile Include="..\..\lib\dns\xfrin.c" />
+    <ClCompile Include="..\..\lib\dns\zone.c" />
+    <ClCompile Include="..\..\lib\dns\zonekey.c" />
+    <ClCompile Include="..\..\lib\dns\zoneverify.c" />
+    <ClCompile Include="..\..\lib\dns\zt.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\lib\dns\dst_internal.h" />
+    <ClInclude Include="..\..\lib\dns\dst_openssl.h" />
+    <ClInclude Include="..\..\lib\dns\dst_parse.h" />
+    <ClInclude Include="..\..\lib\dns\dst_pkcs11.h" />
+    <ClInclude Include="..\..\lib\dns\gen-unix.h" />
+    <ClInclude Include="..\..\lib\dns\gen-win32.h" />
+    <ClInclude Include="..\..\lib\dns\rbtdb.h" />
+    <ClInclude Include="..\..\lib\dns\rdatalist_p.h" />
+    <ClInclude Include="..\..\lib\dns\tsig_p.h" />
+    <ClInclude Include="..\..\lib\dns\zone_p.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CB20AE16-2EF9-498D-824A-E9DC14FADA89}</ProjectGuid>
+  </PropertyGroup>
+</Project>

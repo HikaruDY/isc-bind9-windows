@@ -1,0 +1,92 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup Label="UserMacros">
+		<root>$(SolutionDir)/..</root>
+	</PropertyGroup>
+
+	<!-- $(PlatformID) macro -->
+	<PropertyGroup Label="UserMacros">
+		<PlatformID>unknown</PlatformID>
+	</PropertyGroup>
+
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='Win32')">
+		<PlatformID>x86</PlatformID>
+	</PropertyGroup>
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='x64')">
+		<PlatformID>x64</PlatformID>
+	</PropertyGroup>
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='Itanium')">
+		<PlatformID>ia64</PlatformID>
+	</PropertyGroup>
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='ARM')">
+		<PlatformID>a32</PlatformID>
+	</PropertyGroup>
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='ARM64')">
+		<PlatformID>a64</PlatformID>
+	</PropertyGroup>
+	<PropertyGroup Label="UserMacros" Condition="('$(Platform)'=='ARM64EC')">
+		<PlatformID>a64ec</PlatformID>
+	</PropertyGroup>
+
+	<PropertyGroup Label="Configuration">
+		<IntDir>$(SolutionDir)\TEMP\$(Configuration)_$(PlatformID)\$(MSBuildProjectName)\</IntDir>
+		<OutDir>$(SolutionDir)$(Configuration)_$(PlatformID)\</OutDir>
+		<GenerateManifest>false</GenerateManifest>
+		<UseDebugLibraries>false</UseDebugLibraries>
+		<CharacterSet>MultiByte</CharacterSet>
+		<PlatformToolset>v143</PlatformToolset>
+	</PropertyGroup>
+
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<PreprocessorDefinitions>BIND9;WIN32;_NDEBUG;_WINDOWS;_USRDLL;BUILDER="Dark Embedded Systems";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+			<AdditionalIncludeDirectories>
+				$(root)/lib/isc;
+				$(root)/lib/isc/include;
+				$(root)/lib/isc/win32;
+				$(root)/lib/isc/win32/include;
+				$(root)/lib/isccc/include;
+				$(root)/lib/dns/include;
+				$(root)/lib/ns/include;
+				$(root)/lib/isccfg/include;
+				$(root)/lib/bind9/include;
+				$(root)/lib/irs/include;
+				$(root)/lib/irs/win32/include;
+				$(root);
+				$(root)/bin/named/include;
+				$(root)/bin/named/win32/include;
+				$(root)/bin/dig/include;
+				$(root)/bin/confgen/include;
+				$(SolutionDir)/include;
+				$(SolutionDir)/libs/include;
+				%(AdditionalIncludeDirectories)
+			</AdditionalIncludeDirectories>
+			<ForcedIncludeFiles>$(SolutionDir)/include/config.h</ForcedIncludeFiles>
+
+			<MultiProcessorCompilation>true</MultiProcessorCompilation>
+			<Optimization>MaxSpeed</Optimization>
+			<InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+			<IntrinsicFunctions>true</IntrinsicFunctions>
+			<FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+			<RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+		</ClCompile>
+		<Link>
+			<GenerateDebugInformation>false</GenerateDebugInformation>
+			<AdditionalDependencies>
+				$(SolutionDir)\libs\$(PlatformID)\libcrypto.lib;
+				$(SolutionDir)\libs\$(PlatformID)\libssl.lib;
+				$(SolutionDir)\libs\$(PlatformID)\libxml2.lib;
+				$(SolutionDir)\libs\$(PlatformID)\uv.lib;
+				ws2_32.lib;
+				Netapi32.lib;
+				Version.lib;
+				%(AdditionalDependencies)
+			</AdditionalDependencies>
+			<LargeAddressAware>true</LargeAddressAware>
+			<TerminalServerAware>true</TerminalServerAware>
+			<SetChecksum>false</SetChecksum>
+			<RandomizedBaseAddress>true</RandomizedBaseAddress>
+			<FixedBaseAddress>false</FixedBaseAddress>
+		</Link>
+	</ItemDefinitionGroup>
+</Project>
