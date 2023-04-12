@@ -1,13 +1,14 @@
-*.sln.in eol=crlf
-*.vcxproj.* eol=crlf
+# Project Entertainments* common git attributes
+#	(C)2023 Project Entertainments*
 
-/fuzz/dns_rdata_fromwire_text.in/input-* -text
+*.bat		text eol=crlf
+*.cmd		text eol=crlf
+*.sln		text eol=crlf
+*.props		text eol=crlf
+*.vcxproj	text eol=crlf
+*.csproj	text eol=crlf
 
-.gitignore			 export-ignore
-/conftools			 export-ignore
-/doc/design			 export-ignore
-/doc/dev			 export-ignore
-/util/**			 export-ignore
-/util/bindkeys.pl		-export-ignore
-/util/check-make-install.in	-export-ignore
-/util/mksymtbl.pl		-export-ignore
+.gitignore	export-ignore
+.gitattribute	export-ignore
+
+# This project

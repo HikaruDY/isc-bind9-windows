@@ -1,13 +1,56 @@
-# Legacy VS projects
-*.sln.in
-*.vcxproj
-*.vcxproj.in
+# Project Entertainments* common ignore list
+#	(C)2023 Project Entertainments*
+
+# Work directory (VS)
+/BuildVS/.vs
+/BuildVS/TEMP
+/BuildVS/Release*
+/BuildVS/Debug*
+/BuildVS/libs
+
+# Work directory (Script)
+/BuildEx/TEMP
+/BuildEx/Release*
+/BuildEx/Debug*
+/BuildEx/libs
+
+# Work directory (Project Studio)
+/BuildPS/TEMP
+/BuildPS/Release*
+/BuildPS/Debug*
+/BuildPS/libs
+
+
+# Generated files
+*.suo
 *.vcxproj.user
 *.vcxproj.filters
-*.vcxproj.filters.in
+*.sdf
+*.opensdf
+*.ipch
+*.log
+*.tlog
+
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+*.obj
+*.cache
+
+*.o
+*.a
+*.lo
+*.la
+*.Po
+
+# OS related
+Thumbs.db
+.DS_Store
 
 # This project
-/.gitlab
 /.github
+/.gitlab
 /.reuse
 /win32utils
