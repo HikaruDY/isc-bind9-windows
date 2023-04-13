@@ -9,6 +9,6 @@
 *.csproj	text eol=crlf
 
 .gitignore	export-ignore
-.gitattribute	export-ignore
+.gitattributes	export-ignore
 
 # This project
